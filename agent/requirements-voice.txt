@@ -1,0 +1,4 @@
+# Optional: voice input/output (all offline, CPU).
+faster-whisper>=1.0
+sounddevice>=0.4
+piper-tts>=1.3

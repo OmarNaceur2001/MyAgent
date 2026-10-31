@@ -1,0 +1,115 @@
+/* Critter MIMO motion. CSS keyframes only: runs on the compositor, nearly free. */
+
+.critter .part { transform-box: fill-box; }
+.critter.pokeable { cursor: pointer; }
+
+/* ---------- whole body, per mood ---------- */
+.critter .body { transform-origin: 50% 100%; transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.critter[data-mood="idle"] .body { animation: cr-breathe 3.4s ease-in-out infinite; }
+.critter[data-mood="listening"] .body { transform: rotate(-4deg) translateY(-2px); animation: cr-lean 1.6s ease-in-out infinite; }
+.critter[data-mood="thinking"] .body { animation: cr-sway 2.6s ease-in-out infinite; }
+.critter[data-mood="working"] .body { animation: cr-bob 0.6s ease-in-out infinite; --bob: -3px; }
+.critter[data-mood="speaking"] .body { animation: cr-bob 0.5s ease-in-out infinite; --bob: -3px; }
+.critter[data-mood="happy"] .body { animation: cr-bob 1.2s ease-in-out infinite; --bob: -7px; }
+.critter[data-mood="excited"] .body { animation: cr-hop 0.55s ease-out infinite; --hop: -16px; }
+.critter[data-mood="celebrating"] .body { animation: cr-hop 0.75s ease-out infinite; --hop: -22px; }
+.critter[data-mood="confused"] .body { transform: rotate(-7deg); }
+.critter[data-mood="sad"] .body { transform: translateY(5px) scaleY(0.97); }
+.critter[data-mood="sleepy"] .body { animation: cr-snooze 3.8s ease-in-out infinite; }
+.critter[data-mood="focus"] .body { animation: cr-breathe 4.2s ease-in-out infinite; }
+
+@keyframes cr-breathe { 0%, 100% { transform: translateY(0) scale(1, 1); } 50% { transform: translateY(-3px) scale(1.01, 1.02); } }
+@keyframes cr-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(var(--bob, -4px)); } }
+@keyframes cr-sway { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+@keyframes cr-lean { 0%, 100% { transform: rotate(-4deg) translateY(-2px); } 50% { transform: rotate(-6deg) translateY(-4px); } }
+@keyframes cr-snooze { 0%, 100% { transform: translateY(3px) scale(1.02, 0.97); } 50% { transform: translateY(5px) scale(1.04, 0.95); } }
+@keyframes cr-hop {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  15% { transform: translateY(0) scale(1.06, 0.92); }
+  50% { transform: translateY(var(--hop)) scale(0.96, 1.05); }
+  85% { transform: translateY(0) scale(1.04, 0.96); }
+}
+
+/* ---------- ears: swing smoothly between moods ---------- */
+.critter .ear { transform-origin: 50% 90%; transform: rotate(var(--r)); transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.critter[data-mood="listening"] .ear { animation: cr-ear-twitch 1.6s ease-in-out infinite; }
+@keyframes cr-ear-twitch { 0%, 80%, 100% { transform: rotate(var(--r)); } 88% { transform: rotate(calc(var(--r) + 8deg)); } }
+
+/* ---------- tuft ---------- */
+.critter .tuft { transform-origin: 30% 100%; }
+.critter[data-mood="excited"] .tuft,
+.critter[data-mood="celebrating"] .tuft { animation: cr-tuft 0.4s ease-in-out infinite alternate; }
+.critter[data-mood="sad"] .tuft { transform: rotate(40deg); }
+@keyframes cr-tuft { from { transform: rotate(-10deg); } to { transform: rotate(14deg); } }
+
+/* ---------- paws: angle from props, optional loop ---------- */
+.critter .arm { transform-origin: 14% 50%; transform: rotate(var(--a)); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.critter .arm.loop { animation: cr-arm var(--speed, 1s) ease-in-out infinite; }
+@keyframes cr-arm { 0%, 100% { transform: rotate(var(--a)); } 50% { transform: rotate(var(--a2)); } }
+
+/* ---------- tail: always a little alive ---------- */
+.critter .tail { transform-origin: 0% 100%; animation: cr-tail 3s ease-in-out infinite; }
+.critter .tail[data-tail="wag"] { animation: cr-tail 0.5s ease-in-out infinite; }
+.critter .tail[data-tail="droop"] { animation: none; }
+@keyframes cr-tail { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-5deg); } }
+.critter .plug-glow { animation: cr-glow 2.2s ease-in-out infinite; }
+.critter[data-mood="listening"] .plug-glow,
+.critter[data-mood="working"] .plug-glow { animation-duration: 0.7s; }
+.critter[data-mood="sleepy"] .plug-glow { animation: none; opacity: 0.25; }
+@keyframes cr-glow { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+
+/* ---------- face details ---------- */
+.critter .blink-once { transform-origin: 50% 50%; animation: cr-blink 0.18s ease-in-out; }
+@keyframes cr-blink { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.08); } }
+.critter .mouth-a { animation: cr-talk-a 0.32s steps(1) infinite; }
+.critter .mouth-b { animation: cr-talk-b 0.32s steps(1) infinite; }
+@keyframes cr-talk-a { 0% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes cr-talk-b { 0% { opacity: 0; } 50% { opacity: 1; } }
+.critter .twinkle-eyes { transform-origin: 50% 50%; animation: cr-twinkle 0.6s ease-in-out infinite; }
+@keyframes cr-twinkle { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+
+/* ---------- extras ---------- */
+.critter .float-up { animation: cr-float 3s ease-out infinite; opacity: 0; }
+@keyframes cr-float { 0% { opacity: 0; transform: translateY(4px); } 30% { opacity: 0.9; } 100% { opacity: 0; transform: translateY(-14px); } }
+.critter .pulse { animation: cr-pulse 1.1s ease-in-out infinite; }
+@keyframes cr-pulse { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
+.critter .wobble { transform-origin: 50% 100%; animation: cr-sway 1.4s ease-in-out infinite; }
+.critter .pop { transform-origin: 50% 50%; animation: cr-pop 1.2s ease-in-out infinite; }
+@keyframes cr-pop { 0%, 100% { transform: scale(0.6) rotate(0); opacity: 0.5; } 50% { transform: scale(1.1) rotate(45deg); opacity: 1; } }
+
+/* ---------- beats: one-shot actions on top of the mood ---------- */
+.critter .beat { transform-origin: 50% 92%; }
+.critter .beat[data-beat="hop"] { animation: cr-beat-hop 0.6s cubic-bezier(0.3, 0.7, 0.4, 1); }
+.critter .beat[data-beat="startle"] { animation: cr-beat-hop 0.45s ease-out; --h: -14px; }
+.critter .beat[data-beat="nod"] { animation: cr-beat-nod 0.8s ease-in-out; }
+.critter .beat[data-beat="shake"] { animation: cr-beat-shake 0.7s ease-in-out; }
+.critter .beat[data-beat="spin"] { animation: cr-beat-spin 0.9s cubic-bezier(0.5, 0, 0.3, 1); transform-origin: 50% 60%; }
+.critter .beat[data-beat="giggle"] { animation: cr-beat-giggle 0.9s ease-in-out; }
+.critter .beat[data-beat="yawn"],
+.critter .beat[data-beat="stretch"] { animation: cr-beat-stretch 1.6s ease-in-out; }
+.critter .beat[data-beat="hum"] { animation: cr-sway 1.2s ease-in-out 2; }
+.critter .beat[data-beat="wave"] .arm-R { animation: cr-wave 0.35s ease-in-out 4 alternate; }
+.critter .beat[data-beat="yawn"] .arm,
+.critter .beat[data-beat="stretch"] .arm { animation: cr-arms-up 1.5s ease-in-out; }
+
+@keyframes cr-beat-hop {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  20% { transform: translateY(0) scale(1.08, 0.9); }
+  55% { transform: translateY(var(--h, -26px)) scale(0.95, 1.06); }
+}
+@keyframes cr-beat-nod { 0%, 50%, 100% { transform: translateY(0); } 25%, 75% { transform: translateY(5px) scale(1.02, 0.97); } }
+@keyframes cr-beat-shake { 0%, 100% { transform: rotate(0); } 20%, 60% { transform: rotate(-6deg); } 40%, 80% { transform: rotate(6deg); } }
+@keyframes cr-beat-spin { to { transform: rotate(360deg); } }
+@keyframes cr-beat-giggle {
+  0%, 100% { transform: rotate(0) translateY(0); }
+  15%, 45%, 75% { transform: rotate(-4deg) translateY(-3px); }
+  30%, 60%, 90% { transform: rotate(4deg) translateY(0); }
+}
+@keyframes cr-beat-stretch { 0%, 100% { transform: scale(1, 1); } 40%, 60% { transform: scale(0.96, 1.08) translateY(-4px); } }
+@keyframes cr-wave { from { transform: rotate(-40deg); } to { transform: rotate(-95deg); } }
+@keyframes cr-arms-up { 0%, 100% { transform: rotate(var(--a)); } 35%, 65% { transform: rotate(-80deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .critter * { animation: none !important; }
+  .critter .float-up { opacity: 0.8; }
+}

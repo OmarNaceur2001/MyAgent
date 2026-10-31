@@ -1,0 +1,98 @@
+body.transparent,
+body.transparent #root {
+  background: transparent;
+  overflow: hidden;
+}
+
+.companion {
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  grid-template-rows: 1fr auto auto;
+  justify-items: center;
+  align-items: end;
+  padding: 6px 6px 10px;
+  user-select: none;
+}
+
+/* the character is the drag handle (dragging is done in Companion.tsx) */
+.drag { cursor: grab; touch-action: none; }
+.drag:active { cursor: grabbing; }
+
+.c-bubble-slot { width: 100%; display: grid; justify-items: center; align-self: end; }
+
+.c-bubble {
+  max-width: 220px;
+  background: var(--paper);
+  border: var(--line);
+  border-radius: 18px;
+  box-shadow: var(--pop-sm);
+  padding: 8px 12px;
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  line-height: 1.3;
+  text-align: center;
+  position: relative;
+  margin-bottom: 4px;
+}
+.c-bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -9px;
+  width: 14px;
+  height: 14px;
+  background: var(--paper);
+  border-right: var(--line);
+  border-bottom: var(--line);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.c-body { filter: drop-shadow(0 6px 10px rgba(43, 39, 72, 0.25)); }
+
+.c-footer {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  min-height: 28px;
+  margin-top: 4px;
+}
+
+.c-timer {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  background: var(--plum);
+  color: var(--mint);
+  border-radius: 999px;
+  padding: 3px 12px;
+}
+.c-timer[data-kind="short_break"],
+.c-timer[data-kind="long_break"] { color: var(--butter); }
+.c-timer[data-paused="true"] { opacity: 0.6; }
+
+.c-open {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 0;
+  background: var(--plum);
+  color: var(--paper);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.companion:hover .c-open,
+.c-open:focus-visible { opacity: 1; }
+
+.companion .mic-btn.small {
+  width: 28px;
+  height: 28px;
+  box-shadow: 0 2px 0 #d97a8f;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.companion:hover .mic-btn.small,
+.companion .mic-btn.small[data-listening="true"] { opacity: 1; }

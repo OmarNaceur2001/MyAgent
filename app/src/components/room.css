@@ -1,0 +1,20 @@
+/* Small ambient motion in MIMO's room. Paused for reduced-motion users. */
+.room .room-clouds { animation: room-drift 60s linear infinite; }
+@keyframes room-drift { from { transform: translateX(-60px); } to { transform: translateX(140px); } }
+
+.room .room-star { animation: room-twinkle 2.6s ease-in-out infinite; }
+@keyframes room-twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+.room .room-bulb { animation: room-bulb 3s ease-in-out infinite; }
+@keyframes room-bulb { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.4); } }
+
+.room .room-steam { animation: room-steam 2.4s ease-out infinite; opacity: 0; }
+@keyframes room-steam { 0% { opacity: 0; transform: translateY(4px); } 40% { opacity: 0.8; } 100% { opacity: 0; transform: translateY(-10px); } }
+
+.room .room-clock { animation: room-clock 2s steps(1) infinite; }
+@keyframes room-clock { 0% { opacity: 1; } 96% { opacity: 0.85; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .room * { animation: none !important; }
+  .room .room-steam { opacity: 0.6; }
+}
