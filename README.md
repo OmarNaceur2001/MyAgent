@@ -1,4 +1,4 @@
-# MIMO
+# MyAgent
 
 Your little AI computer companion: a voice-driven computer-use agent that
 lives on your desktop as an animated character. Everything runs locally.
