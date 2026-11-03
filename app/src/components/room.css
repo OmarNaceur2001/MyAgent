@@ -1,4 +1,4 @@
-/* Small ambient motion in MIMO's room. Paused for reduced-motion users. */
+/* Small ambient motion in MyAgent's room. Paused for reduced-motion users. */
 .room .room-clouds { animation: room-drift 60s linear infinite; }
 @keyframes room-drift { from { transform: translateX(-60px); } to { transform: translateX(140px); } }
 

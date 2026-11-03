@@ -1,5 +1,5 @@
 // Event contract between the agent and the UI.
-// Source of truth: docs/events.md (mirrored in agent/mimo_agent/events.py).
+// Source of truth: docs/events.md (mirrored in agent/myagent_agent/events.py).
 
 export type AgentState =
   | "idle"

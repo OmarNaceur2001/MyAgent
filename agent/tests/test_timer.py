@@ -1,7 +1,7 @@
 import asyncio
 
-from mimo_agent.store import Store
-from mimo_agent.timer import PomodoroConfig, TimerService
+from myagent_agent.store import Store
+from myagent_agent.timer import PomodoroConfig, TimerService
 
 
 def test_pomodoro_cycle(tmp_path):

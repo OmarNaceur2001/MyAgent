@@ -9,7 +9,7 @@ export class PanelBoundary extends Component<{ children: ReactNode }, { error: E
   }
 
   componentDidCatch(error: Error) {
-    console.error("MIMO panel crashed:", error);
+    console.error("MyAgent panel crashed:", error);
   }
 
   render() {
@@ -17,7 +17,7 @@ export class PanelBoundary extends Component<{ children: ReactNode }, { error: E
     return (
       <div className="panel-body">
         <div className="notice" role="alert">
-          <strong>This part of MIMO hit an error.</strong>
+          <strong>This part of MyAgent hit an error.</strong>
           <span>{this.state.error.message}</span>
           <button className="chip" onClick={() => this.setState({ error: null })}>
             Try again

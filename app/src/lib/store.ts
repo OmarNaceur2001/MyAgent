@@ -5,7 +5,7 @@ import type { AgentEvent, AgentState, Features, GameId, PlanStep, Prefs, StepSta
 import { sfx } from "./sfx";
 import { greetingFor, pick, type Situation } from "./personality";
 
-export type ChatLine = { id: number; from: "you" | "mimo"; text: string; tone?: Tone };
+export type ChatLine = { id: number; from: "you" | "myagent"; text: string; tone?: Tone };
 export type Task = {
   id: string;
   goal: string;
@@ -37,7 +37,7 @@ type State = {
 const QUIET_BEFORE_SLEEPY_MS = 4 * 60 * 1000;
 let lineId = 0;
 
-export const useMimo = create<State>(() => ({
+export const useMyAgent = create<State>(() => ({
   connected: false,
   features: null,
   agentState: "idle",
@@ -57,7 +57,7 @@ export const useMimo = create<State>(() => ({
   error: null,
 }));
 
-const set = useMimo.setState;
+const set = useMyAgent.setState;
 const react = (mood: Mood, ms = 3500) => set({ reaction: { mood, until: Date.now() + ms } });
 const say = (text: string) => set({ bubble: { text, id: ++lineId } });
 const touch = () => set({ lastActivity: Date.now() });
@@ -71,7 +71,7 @@ export function playBeat(name: Beat) {
   set({ beat: { name, id } });
   clearTimeout(beatTimer);
   beatTimer = setTimeout(() => {
-    if (useMimo.getState().beat?.id === id) set({ beat: null });
+    if (useMyAgent.getState().beat?.id === id) set({ beat: null });
   }, BEAT_MS[name]);
 }
 const addLine = (line: Omit<ChatLine, "id">) =>
@@ -83,7 +83,7 @@ function apply(e: AgentEvent) {
       set({ features: e.payload.features });
       break;
     case "agent.status": {
-      const was = useMimo.getState().agentState;
+      const was = useMyAgent.getState().agentState;
       set({ agentState: e.payload.state });
       if (e.payload.state === "listening" && was !== "listening") sfx.play("listen");
       touch();
@@ -104,7 +104,7 @@ function apply(e: AgentEvent) {
       break;
     case "agent.message": {
       const { text, tone } = e.payload;
-      addLine({ from: "mimo", text, tone });
+      addLine({ from: "myagent", text, tone });
       say(text);
       if (tone === "happy") (react("happy"), playBeat("nod"));
       if (tone === "confused") (react("confused"), playBeat("shake"));
@@ -148,7 +148,7 @@ function apply(e: AgentEvent) {
       if (e.payload.ok) playBeat("hop");
       break;
     case "timer.state": {
-      const prev = useMimo.getState().timer;
+      const prev = useMyAgent.getState().timer;
       const next = e.payload.timer;
       set({ timer: next });
       // a new focus phase just started (not a pause/resume of the same one)
@@ -194,7 +194,7 @@ function apply(e: AgentEvent) {
   }
 }
 
-/** The one place that decides how MIMO looks. Real events only. */
+/** The one place that decides how MyAgent looks. Real events only. */
 export function moodFor(s: State): Mood {
   if (!s.connected) return "sleepy";
   switch (s.agentState) {
@@ -219,7 +219,7 @@ export function moodFor(s: State): Mood {
   return "idle";
 }
 
-export const useMood = () => useMimo(moodFor);
+export const useMood = () => useMyAgent(moodFor);
 
 /** Seconds left on the current timer, counted locally from ends_at. */
 export function secondsLeft(t: Timer | null, now: number): number {
@@ -236,19 +236,19 @@ export function setPref<K extends keyof Prefs>(key: K, value: Prefs[K]) {
 
 /** Esc / stop: stop talking, stop listening, cancel the task. */
 export function hush() {
-  const s = useMimo.getState();
+  const s = useMyAgent.getState();
   if (s.agentState === "listening") send("voice.stop");
   else send("agent.cancel");
 }
 
 export function answerConfirm(approved: boolean) {
-  const c = useMimo.getState().confirm;
+  const c = useMyAgent.getState().confirm;
   if (!c) return;
   send("confirm.reply", { request_id: c.request_id, approved });
   set({ confirm: null });
 }
 
-export function sayToMimo(text: string) {
+export function sayToMyAgent(text: string) {
   const ok = send("say", { text });
   if (!ok) say("I can't hear you: my agent isn't running yet.");
   touch();
@@ -271,7 +271,7 @@ export function closeGame() {
 
 export type Outcome = "win" | "lose" | "draw";
 
-/** A game ended. outcome is from the USER's side. MIMO reacts; the agent pays coins. */
+/** A game ended. outcome is from the USER's side. MyAgent reacts; the agent pays coins. */
 export function gameOver(game: GameId, outcome: Outcome) {
   send("game.result", { game, outcome });
   sfx.play(outcome === "win" ? "win" : outcome === "lose" ? "lose" : "draw");
@@ -283,7 +283,7 @@ export function gameOver(game: GameId, outcome: Outcome) {
   } else if (outcome === "lose") {
     react("celebrating", 3000);
     playBeat("spin");
-    line("mimoWins");
+    line("myAgentWins");
   } else {
     react("happy", 2000);
     playBeat("nod");
@@ -296,7 +296,7 @@ export function gameOver(game: GameId, outcome: Outcome) {
 export function gameMoment(kind: "thinking" | "nice") {
   if (kind === "thinking") {
     react("thinking", 900);
-    if (Math.random() < 0.35) line("mimoTurn");
+    if (Math.random() < 0.35) line("myAgentTurn");
   } else {
     react("happy", 900);
     playBeat("nod");
@@ -309,10 +309,10 @@ export function gameMoment(kind: "thinking" | "nice") {
 // ---------- direct interaction ----------
 
 let pokes: number[] = [];
-/** The user clicked MIMO. */
+/** The user clicked MyAgent. */
 export function poke() {
-  const s = useMimo.getState();
-  // Clicking MIMO while he talks makes him stop: the quickest "shh".
+  const s = useMyAgent.getState();
+  // Clicking MyAgent while he talks makes him stop: the quickest "shh".
   if (s.agentState === "speaking") {
     send("voice.hush");
     playBeat("nod");
@@ -353,7 +353,7 @@ export { line as speakLine };
 
 let booted = false;
 /** Connect once per window and keep the clock ticking for countdowns. */
-export function bootMimo() {
+export function bootMyAgent() {
   if (booted) return;
   booted = true;
   agent.onEvent(apply);

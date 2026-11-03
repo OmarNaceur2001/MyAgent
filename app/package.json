@@ -1,9 +1,9 @@
 {
-  "name": "mimo-app",
+  "name": "myagent-app",
   "private": true,
   "type": "module",
   "version": "0.1.0",
-  "description": "MIMO, your little AI computer companion",
+  "description": "MyAgent, your little AI computer companion",
   "main": "electron/main.cjs",
   "scripts": {
     "dev": "node scripts/dev.mjs",

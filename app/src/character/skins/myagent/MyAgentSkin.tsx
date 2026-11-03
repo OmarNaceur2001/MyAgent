@@ -3,14 +3,14 @@ import { useId, type CSSProperties } from "react";
 import type { Mood } from "../../moods";
 import type { CharacterProps } from "../../types";
 import { Face, type Expression } from "./Face";
-import "./mimo.css";
+import "./myagent.css";
 
 /*
-  MIMO — an original pocket-computer character.
-  Signature features (keep these when restyling, they make MIMO recognisable):
+  MyAgent — an original pocket-computer character.
+  Signature features (keep these when restyling, they make MyAgent recognisable):
     • soft periwinkle squircle body
     • a dark "night screen" face with glowing mint features
-    • an antenna light that shows MIMO's status colour
+    • an antenna light that shows MyAgent's status colour
     • one big coral button + two small pill buttons
   Everything is vector, so it stays sharp at any size and costs almost no GPU.
 */
@@ -28,7 +28,7 @@ const C = {
 };
 
 // Antenna light colour per mood: doubles as a status light you can read
-// at a glance, even when MIMO is tiny on the desktop.
+// at a glance, even when MyAgent is tiny on the desktop.
 const ANTENNA: Record<Mood, string> = {
   idle: "#7EF2CF",
   listening: "#FF8A7A",
@@ -57,7 +57,7 @@ const BEAT_FACE: Partial<Record<string, Expression>> = {
 // The eyes don't follow the cursor in these moods (eyes closed or busy).
 const NO_GAZE = new Set<Mood>(["sleepy", "happy", "celebrating", "thinking"]);
 
-// Body motion per mood lives in mimo.css (keyed on data-mood).
+// Body motion per mood lives in myagent.css (keyed on data-mood).
 
 // Arm angle in degrees: 0 = straight out, positive = up, negative = down.
 const ARMS: Record<Mood, { left: number | [number, number]; right: number | [number, number]; speed?: number }> = {
@@ -75,7 +75,7 @@ const ARMS: Record<Mood, { left: number | [number, number]; right: number | [num
   focus: { left: -20, right: -20 },
 };
 
-export function MimoSkin({ mood, beat, gaze, blink = 0, size = 220, shadow = true, onPoke, title }: CharacterProps) {
+export function MyAgentSkin({ mood, beat, gaze, blink = 0, size = 220, shadow = true, onPoke, title }: CharacterProps) {
   const uid = useId().replace(/:/g, "");
   const arms = ARMS[mood];
   const antenna = ANTENNA[mood];
@@ -92,8 +92,8 @@ export function MimoSkin({ mood, beat, gaze, blink = 0, size = 220, shadow = tru
       width={size}
       height={(size * 260) / 220}
       role="img"
-      aria-label={title ?? `MIMO is ${mood}`}
-      className={`mimo${onPoke ? " pokeable" : ""}`}
+      aria-label={title ?? `MyAgent is ${mood}`}
+      className={`myagent${onPoke ? " pokeable" : ""}`}
       data-mood={mood}
       onClick={onPoke}
       style={{ overflow: "visible", display: "block" }}
@@ -213,7 +213,7 @@ function Arm({
   );
 }
 
-// Little things that float around MIMO for some moods.
+// Little things that float around MyAgent for some moods.
 function Extras({ mood }: { mood: Mood }) {
   const ink = "#2B2748";
   if (mood === "sleepy") {
@@ -307,7 +307,7 @@ function Extras({ mood }: { mood: Mood }) {
   return null;
 }
 
-// Little music notes floating up while MIMO hums.
+// Little music notes floating up while MyAgent hums.
 function Notes() {
   return (
     <g fill="#2B2748" fontFamily="Fredoka, sans-serif" fontWeight={600}>

@@ -33,7 +33,7 @@ class AgentLink {
         const evt = JSON.parse(msg.data) as AgentEvent;
         this.listeners.forEach((l) => l(evt));
       } catch {
-        console.warn("MIMO: ignored a malformed event", msg.data);
+        console.warn("MyAgent: ignored a malformed event", msg.data);
       }
     };
     ws.onclose = () => {

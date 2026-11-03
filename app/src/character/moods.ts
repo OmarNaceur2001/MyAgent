@@ -1,4 +1,4 @@
-// Every mood MIMO can show. The UI never picks a mood at random:
+// Every mood MyAgent can show. The UI never picks a mood at random:
 // moods are derived from real events (see lib/store.ts → moodFor).
 export const MOODS = [
   "idle",

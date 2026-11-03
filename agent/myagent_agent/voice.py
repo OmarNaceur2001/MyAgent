@@ -1,4 +1,4 @@
-"""Voice: hearing (faster-whisper), MIMO's voice (Piper) and the "Hey MIMO" wake word.
+"""Voice: hearing (faster-whisper), MyAgent's voice (Piper) and the "Hey MyAgent" wake word.
 
 Everything runs offline on the CPU, so the GPU stays free for the LLM.
 
@@ -10,10 +10,10 @@ Whisper models download themselves the first time (~150 MB base.en, ~75 MB tiny.
 How hearing works:
   • Level        tells speech from room noise (adapts to your room continuously)
   • Ears         records one request, stops when you stop talking, transcribes it
-  • WakeListener waits for "Hey MIMO": it only transcribes SHORT bursts of speech
+  • WakeListener waits for "Hey MyAgent": it only transcribes SHORT bursts of speech
                  with the tiny model, so silence costs (almost) nothing
   • Voice        ties it together: conversation mode, speaking, pausing the wake
-                 word while MIMO talks so he never wakes himself up
+                 word while MyAgent talks so he never wakes himself up
 """
 
 from __future__ import annotations
@@ -29,20 +29,20 @@ import time
 from pathlib import Path, PureWindowsPath
 from typing import Awaitable, Callable
 
-log = logging.getLogger("mimo.voice")
+log = logging.getLogger("myagent.voice")
 
 SAMPLE_RATE = 16_000
 BLOCK = 1600  # 100 ms of audio per chunk
 MAX_SECONDS = 30  # a request never records forever
 END_SILENCE_S = 1.3  # you stopped talking for this long → done (natural pauses are shorter)
 WAIT_FOR_SPEECH_S = 8  # pressed the mic but said nothing → give up
-FOLLOW_UP_WAIT_S = 6  # in a conversation, how long MIMO waits for your reply
+FOLLOW_UP_WAIT_S = 6  # in a conversation, how long MyAgent waits for your reply
 VOICES_DIR = Path(__file__).resolve().parent.parent / "voices"
 
-WHISPER_MODEL = os.environ.get("MIMO_WHISPER_MODEL", "base.en")  # "small.en" = better, slower
-WAKE_MODEL = os.environ.get("MIMO_WAKE_MODEL", "tiny.en")
-PIPER_VOICE = os.environ.get("MIMO_PIPER_VOICE", "en_US-amy-medium")
-MIC_THRESHOLD = float(os.environ.get("MIMO_MIC_THRESHOLD", "0.012"))  # raise if a noisy room wakes him
+WHISPER_MODEL = os.environ.get("MYAGENT_WHISPER_MODEL", os.environ.get("MIMO_WHISPER_MODEL", "base.en"))  # "small.en" = better, slower
+WAKE_MODEL = os.environ.get("MYAGENT_WAKE_MODEL", os.environ.get("MIMO_WAKE_MODEL", "tiny.en"))
+PIPER_VOICE = os.environ.get("MYAGENT_PIPER_VOICE", os.environ.get("MIMO_PIPER_VOICE", "en_US-amy-medium"))
+MIC_THRESHOLD = float(os.environ.get("MYAGENT_MIC_THRESHOLD", os.environ.get("MIMO_MIC_THRESHOLD", "0.012")))  # raise if a noisy room wakes him
 
 
 def _has(module: str) -> bool:
@@ -118,8 +118,8 @@ class Level:
 # ------------------------------------------------------------------ speech to text
 
 def whisper_prompt(user_name: str) -> str:
-    """Words MIMO hears often. Whisper spells names and game words right far more often with this."""
-    return (f"Hey MIMO. {user_name}. Tic-tac-toe, rock paper scissors, memory game, Pomodoro, "
+    """Words MyAgent hears often. Whisper spells names and game words right far more often with this."""
+    return (f"Hey MyAgent. {user_name}. Tic-tac-toe, rock paper scissors, memory game, Pomodoro, "
             "timer, YouTube, play lofi music, tell me a joke.")
 
 
@@ -202,15 +202,15 @@ class Ears:
         return audio if len(audio) > SAMPLE_RATE * 0.3 else None
 
 
-# ------------------------------------------------------------------ "Hey MIMO"
+# ------------------------------------------------------------------ "Hey MyAgent"
 
-# How Whisper tends to spell "MIMO" when it hears it.
-_NAME = r"(?:mimo|mimoh|mimmo|meemo|mee-?mo|mi-?mo|me-?mo|memo|nimo|nemo|neemo|mino|mimo's)"
+# How Whisper tends to spell "MyAgent" (or legacy "MIMO") when it hears it.
+_NAME = r"(?:my\s*agent|myagent|my-agent|my\s*agant|mimo|mimoh|mimmo|meemo|mee-?mo|mi-?mo|me-?mo|memo|nimo|nemo|neemo|mino|mimo's)"
 _WAKE = re.compile(rf"^\W*(?:(?:hey|hi|hello|okay|ok|yo|oh)\W+)?{_NAME}\b\W*(.*)$", re.IGNORECASE)
 
 
 def wake_match(text: str) -> str | None:
-    """'Hey MIMO, play lofi' → 'play lofi'; 'Hey MIMO.' → ''; anything else → None.
+    """'Hey MyAgent, play lofi' → 'play lofi'; 'Hey MyAgent.' → ''; anything else → None.
 
     The name must come first, so a sentence that merely contains "memo"
     never wakes him.
@@ -222,7 +222,7 @@ def wake_match(text: str) -> str | None:
 
 
 class WakeListener:
-    """Listens in the background for short bursts of speech and checks them for "Hey MIMO".
+    """Listens in the background for short bursts of speech and checks them for "Hey MyAgent".
 
     Cost: the mic stream plus a loudness check every 100 ms. Whisper (tiny)
     only runs on bursts of 0.4–4 s of speech, never on silence.
@@ -243,7 +243,7 @@ class WakeListener:
         if self._thread and self._thread.is_alive():
             return
         self._running.set()
-        self._thread = threading.Thread(target=self._loop, name="mimo-wake", daemon=True)
+        self._thread = threading.Thread(target=self._loop, name="myagent-wake", daemon=True)
         self._thread.start()
 
     def stop(self) -> None:
@@ -327,7 +327,7 @@ class WakeListener:
 # ------------------------------------------------------------------ text to speech
 
 class Mouth:
-    """Speaks MIMO's replies with Piper, as one smooth clip (no gaps between sentences)."""
+    """Speaks MyAgent's replies with Piper, as one smooth clip (no gaps between sentences)."""
 
     def __init__(self) -> None:
         self._voice = None
@@ -398,7 +398,7 @@ class Voice:
         self.emit = emit
         self.on_text = on_text
         self.is_busy = is_busy
-        # Conversation mode: after you talk to MIMO and he answers out loud,
+        # Conversation mode: after you talk to MyAgent and he answers out loud,
         # he listens for your reply without you pressing anything. It ends
         # when you don't say anything for a few seconds, or when you type.
         self.conversation = False
@@ -406,13 +406,13 @@ class Voice:
         self.wake_enabled = True
         self._watch: asyncio.Task | None = None
         self._speaking: asyncio.Task | None = None
-        self._quiet_until = 0.0  # wake word stays off until then (MIMO just spoke)
+        self._quiet_until = 0.0  # wake word stays off until then (MyAgent just spoke)
         self._loop: asyncio.AbstractEventLoop | None = None
         self.ears = Ears(user_name) if Ears.available() else None
         self.mouth = Mouth() if Mouth.available() else None
         self.wake: WakeListener | None = None
         if self.ears:
-            self._wake_transcribe = Transcriber(WAKE_MODEL, "Hey MIMO.")
+            self._wake_transcribe = Transcriber(WAKE_MODEL, "Hey MyAgent.")
             self.wake = WakeListener(self._wake_transcribe, self._wake_allowed, self._on_wake_thread)
 
     def features(self) -> dict[str, bool]:
@@ -434,7 +434,7 @@ class Voice:
                 except Exception as exc:
                     log.warning("could not preload a voice model: %s", exc)
 
-        threading.Thread(target=warm, name="mimo-voice-warmup", daemon=True).start()
+        threading.Thread(target=warm, name="myagent-voice-warmup", daemon=True).start()
         if self.wake and self.wake_enabled:
             self.wake.start()
 
@@ -465,9 +465,9 @@ class Voice:
 
         await self.emit(events.event("agent.wake"))
         self.conversation = True
-        if rest:  # "Hey MIMO, play lofi" → do it right away
+        if rest:  # "Hey MyAgent, play lofi" → do it right away
             await self.on_text(rest)
-        else:  # just "Hey MIMO" → listen for the request
+        else:  # just "Hey MyAgent" → listen for the request
             await self.start_listening()
 
     # ---------- listening
@@ -524,7 +524,7 @@ class Voice:
             await self.emit(events.message(f"I couldn't understand the audio: {exc}", tone="sad"))
             await self.emit(events.status("idle"))
             return
-        # "Hey MIMO, …" said into the mic button: drop the greeting, keep the request
+        # "Hey MyAgent, …" said into the mic button: drop the greeting, keep the request
         rest = wake_match(text)
         if rest:
             text = rest
@@ -559,12 +559,12 @@ class Voice:
         except Exception as exc:
             log.warning("speech failed: %s", exc)
         finally:
-            self._quiet_until = time.monotonic() + 0.8  # don't let the wake word hear MIMO's echo
+            self._quiet_until = time.monotonic() + 0.8  # don't let the wake word hear MyAgent's echo
             await self.emit(events.status("idle"))
-        # In a conversation, listen for the answer once MIMO is done talking
+        # In a conversation, listen for the answer once MyAgent is done talking
         # (and not in the middle of a task that will say more).
         if finished and self.conversation and self.ears and not self.is_busy():
-            await asyncio.sleep(0.4)  # let the speaker go quiet so MIMO doesn't hear himself
+            await asyncio.sleep(0.4)  # let the speaker go quiet so MyAgent doesn't hear himself
             # Only if no newer sentence started meanwhile (this task is still the latest one).
             if self._speaking is asyncio.current_task():
                 await self.start_listening(follow_up=True)

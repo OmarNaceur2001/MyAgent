@@ -6,7 +6,7 @@ import json
 import logging
 from pathlib import Path
 
-log = logging.getLogger("mimo.prefs")
+log = logging.getLogger("myagent.prefs")
 
 DEFAULTS = {"wake_word": True, "speak_replies": True}
 

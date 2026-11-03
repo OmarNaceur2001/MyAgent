@@ -1,3 +1,3 @@
-// Old file, no longer used: MIMO's drawing moved to src/character/skins/.
+// Old file, no longer used: MyAgent's drawing moved to src/character/skins/.
 // Safe to delete.
 export {};

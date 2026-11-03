@@ -1,10 +1,10 @@
-"""The agent's hands: every action MIMO can take on the computer.
+"""The agent's hands: every action MyAgent can take on the computer.
 
-Deliberately small. MIMO may ONLY:
+Deliberately small. MyAgent may ONLY:
   • search the web
   • open a website
   • play something on YouTube
-  • start timers and games (inside MIMO itself)
+  • start timers and games (inside MyAgent itself)
 There are no file, app or system tools at all, so the LLM cannot touch
 files or settings even by mistake: a tool that doesn't exist can't be misused.
 """
@@ -88,7 +88,7 @@ class Toolbox:
             ),
             Tool(
                 "start_game",
-                "Start a game with the user inside MIMO: 'tictactoe', 'rps' (rock paper scissors) or 'memory'.",
+                "Start a game with the user inside MyAgent: 'tictactoe', 'rps' (rock paper scissors) or 'memory'.",
                 _obj({"game": {**S, "enum": list(GAMES)}}, ["game"]),
                 self.start_game,
                 title=lambda a: f"Start {GAMES.get(a.get('game', ''), 'a game')}",

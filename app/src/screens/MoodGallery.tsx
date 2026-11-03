@@ -1,9 +1,9 @@
 import { BEATS, Character, MOODS, MOOD_LABEL } from "../character";
-import { playBeat, useMimo } from "../lib/store";
+import { playBeat, useMyAgent } from "../lib/store";
 
 // Developer page: every mood side by side. Open with ?view=gallery.
 export function MoodGallery() {
-  const beat = useMimo((s) => s.beat);
+  const beat = useMyAgent((s) => s.beat);
   return (
     <div style={{ padding: 32, display: "grid", gap: 24 }}>
     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>

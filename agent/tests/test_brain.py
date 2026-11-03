@@ -4,10 +4,10 @@ import asyncio
 
 import pytest
 
-from mimo_agent.brain import Brain
-from mimo_agent.llm import Reply, ToolCall, parse_message
-from mimo_agent.safety import ActionLog, ConfirmationBroker, SafetyError
-from mimo_agent.tools import Toolbox, parse_first_video, safe_url
+from myagent_agent.brain import Brain
+from myagent_agent.llm import Reply, ToolCall, parse_message
+from myagent_agent.safety import ActionLog, ConfirmationBroker, SafetyError
+from myagent_agent.tools import Toolbox, parse_first_video, safe_url
 
 
 class FakeLLM:
@@ -130,7 +130,7 @@ def test_parse_json_tool_call_in_text():
 
 
 def test_brain_sees_the_conversation_so_far(tmp_path):
-    from mimo_agent.memory import ShortMemory
+    from myagent_agent.memory import ShortMemory
 
     class Recorder(FakeLLM):
         async def chat(self, messages, tools):

@@ -2,7 +2,7 @@ import { Gamepad2, House, MessageCircle, Timer } from "lucide-react";
 import { useEffect, useState } from "react";
 import { PanelBoundary } from "../components/PanelBoundary";
 import { Stage } from "../components/Stage";
-import { hush, useMimo } from "../lib/store";
+import { hush, useMyAgent } from "../lib/store";
 import { FocusPanel } from "./FocusPanel";
 import { HomePanel } from "./HomePanel";
 import { PlayPanel } from "./PlayPanel";
@@ -19,15 +19,15 @@ const TABS: { id: Tab; label: string; Icon: typeof House }[] = [
 
 export function MainApp() {
   const [tab, setTab] = useState<Tab>("home");
-  const connected = useMimo((s) => s.connected);
-  const coins = useMimo((s) => s.stats.coins);
-  const timerRunning = useMimo((s) => s.timer?.status === "running");
-  const taskId = useMimo((s) => s.task?.id);
-  // When MIMO starts a computer task, show its steps.
+  const connected = useMyAgent((s) => s.connected);
+  const coins = useMyAgent((s) => s.stats.coins);
+  const timerRunning = useMyAgent((s) => s.timer?.status === "running");
+  const taskId = useMyAgent((s) => s.task?.id);
+  // When MyAgent starts a computer task, show its steps.
   useEffect(() => {
     if (taskId) setTab("talk");
   }, [taskId]);
-  // Esc: stop whatever MIMO is doing (talking, listening, a task)
+  // Esc: stop whatever MyAgent is doing (talking, listening, a task)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape" && !e.defaultPrevented) hush();
@@ -35,7 +35,7 @@ export function MainApp() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
-  const game = useMimo((s) => s.game);
+  const game = useMyAgent((s) => s.game);
   useEffect(() => {
     if (game) setTab("play");
   }, [game]);
@@ -43,9 +43,9 @@ export function MainApp() {
   return (
     <div className="app">
       <nav className="rail" aria-label="Sections">
-        <div className="wordmark" aria-label="MIMO">
+        <div className="wordmark" aria-label="MyAgent">
           <span className="wordmark-dot" data-on={connected} />
-          MIMO
+          MyAgent
         </div>
         {TABS.map(({ id, label, Icon }) => (
           <button

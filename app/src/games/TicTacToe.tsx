@@ -1,77 +1,77 @@
 import { useEffect, useRef, useState } from "react";
 import { sfx } from "../lib/sfx";
 import { gameMoment, gameOver } from "../lib/store";
-import { isFull, mimoMove, winner, type Board } from "./ticTacToeAI";
+import { isFull, myAgentMove, winner, type Board } from "./ticTacToeAI";
 
 const EMPTY: Board = Array(9).fill(null);
 
-// You are X and go first; MIMO is O and "thinks" before each move.
+// You are X and go first; MyAgent is O and "thinks" before each move.
 export function TicTacToe() {
   const [board, setBoard] = useState<Board>(EMPTY);
-  const [mimoTurn, setMimoTurn] = useState(false);
-  const [score, setScore] = useState({ you: 0, mimo: 0, draw: 0 });
+  const [myAgentTurn, setMyAgentTurn] = useState(false);
+  const [score, setScore] = useState({ you: 0, myagent: 0, draw: 0 });
   const [round, setRound] = useState(1);
   const done = useRef(false);
 
   const result = winner(board);
   const over = !!result || isFull(board);
 
-  // end of round: score + MIMO's reaction (once)
+  // end of round: score + MyAgent's reaction (once)
   useEffect(() => {
     if (!over || done.current) return;
     done.current = true;
     const outcome = result ? (result.who === "X" ? "win" : "lose") : "draw";
     setScore((s) => ({
       you: s.you + (outcome === "win" ? 1 : 0),
-      mimo: s.mimo + (outcome === "lose" ? 1 : 0),
+      myagent: s.myagent + (outcome === "lose" ? 1 : 0),
       draw: s.draw + (outcome === "draw" ? 1 : 0),
     }));
     gameOver("tictactoe", outcome);
   }, [over, result]);
 
-  // MIMO's move, after a short "thinking" pause
+  // MyAgent's move, after a short "thinking" pause
   useEffect(() => {
-    if (!mimoTurn || over) return;
+    if (!myAgentTurn || over) return;
     gameMoment("thinking");
     const t = setTimeout(() => {
       setBoard((b) => {
-        const i = mimoMove(b);
+        const i = myAgentMove(b);
         if (i < 0) return b;
         const next = b.slice();
         next[i] = "O";
         sfx.play("tick");
         return next;
       });
-      setMimoTurn(false);
+      setMyAgentTurn(false);
     }, 650 + Math.random() * 500);
     return () => clearTimeout(t);
-  }, [mimoTurn, over]);
+  }, [myAgentTurn, over]);
 
   const play = (i: number) => {
-    if (board[i] || mimoTurn || over) return;
+    if (board[i] || myAgentTurn || over) return;
     const next = board.slice();
     next[i] = "X";
     sfx.play("tick");
     setBoard(next);
-    if (!winner(next) && !isFull(next)) setMimoTurn(true);
+    if (!winner(next) && !isFull(next)) setMyAgentTurn(true);
   };
 
   const again = () => {
     done.current = false;
     setBoard(EMPTY);
     setRound((r) => r + 1);
-    // take turns starting: MIMO opens every other round
-    setMimoTurn(round % 2 === 1);
+    // take turns starting: MyAgent opens every other round
+    setMyAgentTurn(round % 2 === 1);
   };
 
   const status = result
     ? result.who === "X"
       ? "You win!"
-      : "MIMO wins!"
+      : "MyAgent wins!"
     : over
       ? "It's a draw"
-      : mimoTurn
-        ? "MIMO is thinking…"
+      : myAgentTurn
+        ? "MyAgent is thinking…"
         : "Your turn";
 
   return (
@@ -82,7 +82,7 @@ export function TicTacToe() {
         </span>
         <span className="muted">Draws {score.draw}</span>
         <span>
-          MIMO <strong>{score.mimo}</strong>
+          MyAgent <strong>{score.myagent}</strong>
         </span>
       </div>
       <p className="game-status" aria-live="polite">
@@ -96,7 +96,7 @@ export function TicTacToe() {
             data-mark={c ?? ""}
             data-win={result?.line.includes(i) ?? false}
             onClick={() => play(i)}
-            disabled={!!c || mimoTurn || over}
+            disabled={!!c || myAgentTurn || over}
             aria-label={`Square ${i + 1}${c ? `, ${c}` : ""}`}
           >
             {c === "X" && (

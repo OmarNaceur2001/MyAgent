@@ -1,6 +1,6 @@
 import pytest
 
-from mimo_agent.router import parse_minutes, route
+from myagent_agent.router import parse_minutes, route
 
 
 @pytest.mark.parametrize("text,minutes", [
@@ -12,7 +12,8 @@ def test_parse_minutes(text, minutes):
 
 
 @pytest.mark.parametrize("text,name,args", [
-    ("Hey MIMO, start a 25-minute Pomodoro.", "pomodoro.start", {"focus_min": 25}),
+    ("Hey MyAgent, start a 25-minute Pomodoro.", "pomodoro.start", {"focus_min": 25}),
+    ("Hey MIMO, start a 25-minute Pomodoro.", "pomodoro.start", {"focus_min": 25}),  # legacy wake word
     ("start a pomodoro", "pomodoro.start", {}),
     ("let's do 50 minutes of studying", "pomodoro.start", {"focus_min": 50}),
     ("set a timer for 10 minutes", "timer.start", {"minutes": 10}),
@@ -28,14 +29,17 @@ def test_route(text, name, args):
 
 
 @pytest.mark.parametrize("text,name,args", [
-    ("Hey MIMO!", "greet", {}),
+    ("Hey MyAgent!", "greet", {}),
+    ("hey my agent", "greet", {}),
+    ("Hey MIMO!", "greet", {}),  # legacy wake word
     ("hello", "greet", {}),
     ("let's play tic-tac-toe", "game.open", {"game": "tictactoe"}),
     ("play rock paper scissors with me", "game.open", {"game": "rps"}),
     ("can we play the memory game", "game.open", {"game": "memory"}),
     ("I'm bored", "game.open", {"game": "tictactoe"}),
     ("play Bohemian Rhapsody", "music.play", {"query": "bohemian rhapsody"}),
-    ("mimo, play some lofi hip hop on youtube", "music.play", {"query": "lofi hip hop"}),
+    ("myagent, play some lofi hip hop on youtube", "music.play", {"query": "lofi hip hop"}),
+    ("mimo, play some lofi hip hop on youtube", "music.play", {"query": "lofi hip hop"}),  # legacy wake word
 ])
 def test_fun_routes(text, name, args):
     intent = route(text)

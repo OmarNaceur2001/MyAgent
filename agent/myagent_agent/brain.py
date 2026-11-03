@@ -6,7 +6,7 @@ Loop (max N steps):
   until the LLM answers in plain words.
 
 Every step is broadcast to the UI (agent.step), so the user sees exactly
-what MIMO is doing, and can cancel at any time.
+what MyAgent is doing, and can cancel at any time.
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ from .tools import Toolbox
 
 Emit = Callable[[dict], Awaitable[None]]
 
-SYSTEM_PROMPT = """You are MIMO, a small companion who lives inside {user}'s computer. You're talking with {user} right now.
+SYSTEM_PROMPT = """You are MyAgent, a small companion who lives inside {user}'s computer. You're talking with {user} right now.
 
 How you talk:
 - Like a close friend having a real conversation: warm, a bit playful, curious about {user}.

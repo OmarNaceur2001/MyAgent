@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import type { Mood } from "../../moods";
 
-// MIMO's face, drawn as glowing lines on its dark screen.
+// MyAgent's face, drawn as glowing lines on its dark screen.
 // Screen area: x 61–159, y 71–149. Eyes sit at (90,104) and (130,104).
 
 const GLOW = "#7EF2CF";
@@ -98,7 +98,7 @@ const FACES: Record<Expression, (blink: number) => JSX.Element> = {
       <rect x={LX - 8} y={EY - 3} width={16} height={7} rx={3.5} fill={GLOW} />
       <rect x={RX - 8} y={EY - 3} width={16} height={7} rx={3.5} fill={GLOW} />
       <path d="M104 122 L116 122" {...LINE} />
-      {/* progress strip: shows MIMO is busy doing something */}
+      {/* progress strip: shows MyAgent is busy doing something */}
       <rect x={78} y={134} width={64} height={5} rx={2.5} fill={GLOW} opacity={0.2} />
       <motion.rect
         x={78}
@@ -186,7 +186,7 @@ const FACES: Record<Expression, (blink: number) => JSX.Element> = {
       <Blink n={b}>
         <PillEyes h={12} />
       </Blink>
-      {/* tiny round glasses: MIMO "puts them on" for focus sessions */}
+      {/* tiny round glasses: MyAgent "puts them on" for focus sessions */}
       <circle cx={LX} cy={EY} r={13} stroke={GLOW} strokeWidth={3} fill="none" />
       <circle cx={RX} cy={EY} r={13} stroke={GLOW} strokeWidth={3} fill="none" />
       <path d={`M${LX + 13} ${EY} Q110 ${EY - 5} ${RX - 13} ${EY}`} stroke={GLOW} strokeWidth={3} fill="none" />

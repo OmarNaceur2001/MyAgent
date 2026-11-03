@@ -2,14 +2,14 @@ import { Check, Circle, LoaderCircle, X } from "lucide-react";
 import { useEffect, useRef } from "react";
 import type { Features } from "../lib/events";
 import { VoiceSettings } from "../components/VoiceSettings";
-import { useMimo } from "../lib/store";
+import { useMyAgent } from "../lib/store";
 
 // "setup": built, but needs something installed/running on this PC.
 // Without it, the feature isn't built yet ("Coming soon").
 const SKILLS: { key: keyof Features; name: string; setup?: boolean }[] = [
   { key: "timer", name: "Timers and Pomodoro" },
   { key: "voice", name: "Hearing you (Whisper)", setup: true },
-  { key: "wake", name: "“Hey MIMO” wake word", setup: true },
+  { key: "wake", name: "“Hey MyAgent” wake word", setup: true },
   { key: "tts", name: "Talking back (Piper)", setup: true },
   { key: "llm", name: "Understanding requests (Ollama)", setup: true },
   { key: "computer", name: "Web search, websites, YouTube" },
@@ -17,9 +17,9 @@ const SKILLS: { key: keyof Features; name: string; setup?: boolean }[] = [
 ];
 
 export function TalkPanel() {
-  const chat = useMimo((s) => s.chat);
-  const task = useMimo((s) => s.task);
-  const features = useMimo((s) => s.features);
+  const chat = useMyAgent((s) => s.chat);
+  const task = useMyAgent((s) => s.task);
+  const features = useMyAgent((s) => s.features);
   const end = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export function TalkPanel() {
     <div className="panel-body">
       <header className="panel-head">
         <h2>Talk</h2>
-        <p className="muted">What you asked, and what MIMO did about it.</p>
+        <p className="muted">What you asked, and what MyAgent did about it.</p>
       </header>
 
       {task && (
@@ -53,7 +53,7 @@ export function TalkPanel() {
 
       <div className="chat" role="log">
         {chat.length === 0 ? (
-          <p className="empty">Say “Hey MIMO”, or type below. Your conversation shows up here.</p>
+          <p className="empty">Say “Hey MyAgent”, or type below. Your conversation shows up here.</p>
         ) : (
           chat.map((l) => (
             <p key={l.id} className={`line ${l.from}`}>
@@ -66,8 +66,8 @@ export function TalkPanel() {
 
       <VoiceSettings />
 
-      <section className="skills" aria-label="What MIMO can do">
-        <h3 className="sub">What MIMO can do</h3>
+      <section className="skills" aria-label="What MyAgent can do">
+        <h3 className="sub">What MyAgent can do</h3>
         <ul>
           {SKILLS.map((s) => {
             const on = features?.[s.key] ?? false;

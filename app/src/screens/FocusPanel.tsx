@@ -1,6 +1,6 @@
 import { Pause, Play, SkipForward, Square } from "lucide-react";
 import { formatClock, useSecondsLeft } from "../components/time";
-import { send, useMimo } from "../lib/store";
+import { send, useMyAgent } from "../lib/store";
 
 const PRESETS = [
   { name: "Classic", focus: 25, short: 5, long: 15 },
@@ -9,8 +9,8 @@ const PRESETS = [
 const QUICK_TIMERS = [5, 10, 15];
 
 export function FocusPanel() {
-  const timer = useMimo((s) => s.timer);
-  const connected = useMimo((s) => s.connected);
+  const timer = useMyAgent((s) => s.timer);
+  const connected = useMyAgent((s) => s.connected);
   const left = useSecondsLeft();
 
   if (!timer) {
@@ -18,7 +18,7 @@ export function FocusPanel() {
       <div className="panel-body">
         <header className="panel-head">
           <h2>Focus</h2>
-          <p className="muted">MIMO puts its glasses on and keeps you company while you work.</p>
+          <p className="muted">MyAgent puts its glasses on and keeps you company while you work.</p>
         </header>
         <div className="preset-list">
           {PRESETS.map((p) => (
@@ -60,7 +60,7 @@ export function FocusPanel() {
       <header className="panel-head">
         <h2>{timer.label}</h2>
         <p className="muted">
-          {timer.kind === "focus" && "Heads down. MIMO is right here."}
+          {timer.kind === "focus" && "Heads down. MyAgent is right here."}
           {timer.kind === "short_break" && "Stretch, drink some water."}
           {timer.kind === "long_break" && "Proper break. Step away from the screen."}
           {timer.kind === "timer" && "Counting down."}

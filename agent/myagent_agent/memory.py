@@ -3,7 +3,7 @@
 - Every exchange is kept: LLM chats AND quick commands (songs, games, timers),
   plus small notes like game results, so the brain always knows where the
   conversation is.
-- Saved to data/session.json so you can look at it, and wiped every time MIMO
+- Saved to data/session.json so you can look at it, and wiped every time MyAgent
   starts (or when you say "start over"). Nothing survives a restart.
 """
 

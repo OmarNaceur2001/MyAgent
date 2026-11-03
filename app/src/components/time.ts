@@ -1,6 +1,6 @@
-import { secondsLeft, useMimo } from "../lib/store";
+import { secondsLeft, useMyAgent } from "../lib/store";
 
-export const useSecondsLeft = () => useMimo((s) => secondsLeft(s.timer, s.now));
+export const useSecondsLeft = () => useMyAgent((s) => secondsLeft(s.timer, s.now));
 
 export function formatClock(total: number) {
   const s = Math.max(0, Math.round(total));

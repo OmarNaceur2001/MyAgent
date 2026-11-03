@@ -1,4 +1,4 @@
-// MIMO's home: a cozy lofi desk inside your computer.
+// MyAgent's home: a cozy lofi desk inside your computer.
 // Three moods of light, driven by the timer:
 //   day    → pink walls, sunset sky
 //   night  → focus sessions: purple dark, lamp on, stars out
@@ -17,7 +17,7 @@ type Palette = {
   desk: string;
   deskFront: string;
   deskEdge: string;
-  rug: string; // MIMO's mousepad
+  rug: string; // MyAgent's mousepad
   lights: number; // string-light glow strength
   lamp: number;
 };
@@ -196,7 +196,7 @@ export function Room({ scene, clock }: { scene: Scene; clock: string }) {
         <path className="room-steam" style={{ animationDelay: "1s" }} d="M24 -8 C 18 -16, 28 -20, 22 -30" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" />
       </g>
 
-      {/* MIMO's retro monitor */}
+      {/* MyAgent's retro monitor */}
       <g transform="translate(526 318) scale(.8)">
         <rect x="-4" y="4" width="196" height="150" rx="26" fill="#A792E0" {...S} />
         <rect x="0" y="0" width="188" height="146" rx="24" fill="#C9B6F2" {...S} />

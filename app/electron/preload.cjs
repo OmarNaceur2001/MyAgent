@@ -2,16 +2,16 @@
 // nothing else: no file system, no shell, no Node.
 const { contextBridge, ipcRenderer } = require("electron");
 
-contextBridge.exposeInMainWorld("mimo", {
-  openMain: () => ipcRenderer.send("mimo:open-main"),
-  companionMenu: () => ipcRenderer.send("mimo:companion-menu"),
-  setCompanionHover: (hovering) => ipcRenderer.send("mimo:companion-hover", !!hovering),
-  moveCompanion: (x, y) => ipcRenderer.send("mimo:companion-move", Number(x), Number(y)),
-  companionDragEnd: () => ipcRenderer.send("mimo:companion-drag-end"),
+contextBridge.exposeInMainWorld("myagent", {
+  openMain: () => ipcRenderer.send("myagent:open-main"),
+  companionMenu: () => ipcRenderer.send("myagent:companion-menu"),
+  setCompanionHover: (hovering) => ipcRenderer.send("myagent:companion-hover", !!hovering),
+  moveCompanion: (x, y) => ipcRenderer.send("myagent:companion-move", Number(x), Number(y)),
+  companionDragEnd: () => ipcRenderer.send("myagent:companion-drag-end"),
   // Ctrl+Shift+Space (global shortcut) → toggle listening
   onTalkShortcut: (cb) => {
     const handler = () => cb();
-    ipcRenderer.on("mimo:talk", handler);
-    return () => ipcRenderer.removeListener("mimo:talk", handler);
+    ipcRenderer.on("myagent:talk", handler);
+    return () => ipcRenderer.removeListener("myagent:talk", handler);
   },
 });

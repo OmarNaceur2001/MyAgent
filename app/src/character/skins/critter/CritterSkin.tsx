@@ -4,7 +4,7 @@ import type { CharacterProps } from "../../types";
 import "./critter.css";
 
 /*
-  MIMO, the critter: a little round creature who lives inside your computer.
+  MyAgent, the critter: a little round creature who lives inside your computer.
   Signatures (keep them when restyling):
     • big round ears that move with his feelings
     • huge glossy eyes
@@ -82,7 +82,7 @@ export function CritterSkin({ mood, beat, gaze, blink = 0, size = 220, shadow = 
       width={size}
       height={(size * 196) / 248}
       role="img"
-      aria-label={title ?? `MIMO is ${mood}`}
+      aria-label={title ?? `MyAgent is ${mood}`}
       className={`critter${onPoke ? " pokeable" : ""}`}
       data-mood={mood}
       onClick={onPoke}

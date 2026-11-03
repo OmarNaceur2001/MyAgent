@@ -7,7 +7,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 const http = require("node:http");
 
-const DEV = process.env.MIMO_DEV === "1";
+// MYAGENT_* is current; MIMO_* still honoured so existing setups keep working.
+const DEV = (process.env.MYAGENT_DEV ?? process.env.MIMO_DEV) === "1";
 const DEV_URL = "http://localhost:5173";
 const AGENT_DIR = path.resolve(__dirname, "..", "..", "agent");
 const COMPANION = { width: 240, height: 300 };
@@ -37,7 +38,7 @@ function createMain() {
     height: 780,
     minWidth: 960,
     minHeight: 640,
-    title: "MIMO",
+    title: "MyAgent",
     backgroundColor: "#E6E2F8",
     autoHideMenuBar: true,
     show: false,
@@ -45,7 +46,7 @@ function createMain() {
   });
   load(mainWin, "main");
   mainWin.once("ready-to-show", () => mainWin.show());
-  // Closing the big window just hides it: MIMO keeps floating on the desktop.
+  // Closing the big window just hides it: MyAgent keeps floating on the desktop.
   mainWin.on("close", (e) => {
     if (!quitting) {
       e.preventDefault();
@@ -83,7 +84,7 @@ function createCompanion() {
   });
   companionWin.setAlwaysOnTop(true, "floating");
   // Clicks pass through the empty, transparent parts of the window;
-  // the renderer turns this off while the mouse is over MIMO.
+  // the renderer turns this off while the mouse is over MyAgent.
   companionWin.setIgnoreMouseEvents(true, { forward: true });
   load(companionWin, "companion");
 }
@@ -96,26 +97,26 @@ function openMain() {
 
 // ---------- IPC (window controls only) ----------
 
-ipcMain.on("mimo:open-main", openMain);
-ipcMain.on("mimo:companion-hover", (_e, hovering) => {
+ipcMain.on("myagent:open-main", openMain);
+ipcMain.on("myagent:companion-hover", (_e, hovering) => {
   companionWin?.setIgnoreMouseEvents(!hovering, { forward: true });
 });
 // Dragging is done by hand (pointer events in the renderer) instead of
 // -webkit-app-region, because drag regions swallow hover, double-click and
 // right-click on Windows.
-ipcMain.on("mimo:companion-move", (_e, x, y) => {
+ipcMain.on("myagent:companion-move", (_e, x, y) => {
   if (Number.isFinite(x) && Number.isFinite(y)) companionWin?.setPosition(Math.round(x), Math.round(y));
 });
-ipcMain.on("mimo:companion-drag-end", () => {
+ipcMain.on("myagent:companion-drag-end", () => {
   if (!companionWin) return;
   const [x, y] = companionWin.getPosition();
   writePrefs({ ...readPrefs(), companion: { x, y } });
 });
-ipcMain.on("mimo:companion-menu", () => {
+ipcMain.on("myagent:companion-menu", () => {
   Menu.buildFromTemplate([
-    { label: "Open MIMO", click: openMain },
+    { label: "Open MyAgent", click: openMain },
     { type: "separator" },
-    { label: "Quit MIMO", click: () => app.quit() },
+    { label: "Quit MyAgent", click: () => app.quit() },
   ]).popup({ window: companionWin });
 });
 
@@ -136,7 +137,8 @@ function agentIsUp() {
 }
 
 function findPython() {
-  if (process.env.MIMO_PYTHON) return process.env.MIMO_PYTHON;
+  const fromEnv = process.env.MYAGENT_PYTHON ?? process.env.MIMO_PYTHON;
+  if (fromEnv) return fromEnv;
   const candidates = [
     path.join(AGENT_DIR, ".venv", "Scripts", "python.exe"), // Windows venv
     path.join(AGENT_DIR, ".venv", "bin", "python"), // macOS / Linux venv
@@ -150,12 +152,12 @@ async function startAgent() {
   if (await agentIsUp()) return;
   const python = findPython();
   if (!python) {
-    console.log("[mimo] agent not running and no agent/.venv found: start it with `python run.py`");
+    console.log("[myagent] agent not running and no agent/.venv found: start it with `python run.py`");
     return;
   }
   agentProc = spawn(python, ["run.py"], { cwd: AGENT_DIR, windowsHide: true, stdio: "inherit" });
   agentProc.on("exit", (code) => {
-    console.log(`[mimo] agent exited (${code})`);
+    console.log(`[myagent] agent exited (${code})`);
     agentProc = null;
   });
 }
@@ -174,7 +176,7 @@ function writePrefs(p) {
   try {
     fs.writeFileSync(prefsFile(), JSON.stringify(p, null, 2));
   } catch (err) {
-    console.warn("[mimo] could not save prefs", err);
+    console.warn("[myagent] could not save prefs", err);
   }
 }
 const inside = (pt, a) => pt.x >= a.x && pt.y >= a.y && pt.x < a.x + a.width && pt.y < a.y + a.height;
@@ -189,12 +191,12 @@ if (!app.requestSingleInstanceLock()) {
     await startAgent();
     createCompanion();
     createMain();
-    // Talk to MIMO from anywhere, even when another app is focused.
+    // Talk to MyAgent from anywhere, even when another app is focused.
     // The companion window is always alive, so it handles the shortcut.
     const ok = globalShortcut.register("CommandOrControl+Shift+Space", () => {
-      companionWin?.webContents.send("mimo:talk");
+      companionWin?.webContents.send("myagent:talk");
     });
-    if (!ok) console.warn("[mimo] Ctrl+Shift+Space is taken by another app");
+    if (!ok) console.warn("[myagent] Ctrl+Shift+Space is taken by another app");
   });
   app.on("will-quit", () => globalShortcut.unregisterAll());
   app.on("before-quit", () => {

@@ -1,4 +1,4 @@
-"""MIMO agent server.
+"""MyAgent agent server.
 
 One WebSocket (/ws) carries events to the UI and commands from it.
 Run with:  python run.py
@@ -27,7 +27,7 @@ from .timer import PomodoroConfig, TimerService
 from .tools import Toolbox
 from .voice import Voice
 
-log = logging.getLogger("mimo")
+log = logging.getLogger("myagent")
 
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
@@ -51,7 +51,14 @@ class Hub:
 
 
 hub = Hub()
-store = Store(DATA_DIR / "mimo.db")
+db_file = DATA_DIR / "myagent.db"
+if not db_file.exists() and (DATA_DIR / "mimo.db").exists():
+    import shutil
+    try:
+        shutil.copy2(DATA_DIR / "mimo.db", db_file)
+    except Exception:
+        pass
+store = Store(db_file if (db_file.exists() or not (DATA_DIR / "mimo.db").exists()) else (DATA_DIR / "mimo.db"))
 timers = TimerService(hub.broadcast, store)
 llm = OllamaLLM(settings.ollama_url, settings.model, settings.keep_alive)
 broker = ConfirmationBroker()
@@ -59,7 +66,7 @@ toolbox = Toolbox(timers, emit=lambda e: emit(e))
 
 
 async def emit(evt: dict) -> None:
-    """Broadcast an event, and let MIMO say its replies out loud."""
+    """Broadcast an event, and let MyAgent say its replies out loud."""
     if evt["type"] == "agent.status" and evt["payload"]["state"] == "idle" and voice.is_speaking:
         return  # the voice sends "idle" itself when it finishes talking
     await hub.broadcast(evt)
@@ -89,19 +96,19 @@ async def features() -> dict[str, bool]:
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    log.info("MIMO agent %s ready on ws://127.0.0.1:8765/ws", __version__)
+    log.info("MyAgent agent %s ready on ws://127.0.0.1:8765/ws", __version__)
     log.info("Model: %s (%s) · tools: %s", settings.model,
              "ready" if await llm.available() else "NOT available, start Ollama and pull it",
              ", ".join(toolbox.tools))
     voice.start_background()
     if voice.wake and voice.wake_enabled:
-        log.info('Say "Hey MIMO" any time (wake word on)')
+        log.info('Say "Hey MyAgent" any time (wake word on)')
     yield
     voice.shutdown()
     await timers.stop()
 
 
-app = FastAPI(title="MIMO agent", version=__version__, lifespan=lifespan)
+app = FastAPI(title="MyAgent agent", version=__version__, lifespan=lifespan)
 
 
 @app.get("/health")
@@ -172,7 +179,7 @@ async def handle(name: str, args: dict) -> None:
     elif name == "game.result":
         # A game finished in the UI: reward the player (wins and draws only).
         outcome, game = str(args.get("outcome")), GAME_NAMES.get(str(args.get("game")), "a game")
-        memory.note({"win": f"{settings.user_name} beat MIMO at {game}", "lose": f"MIMO beat {settings.user_name} at {game}",
+        memory.note({"win": f"{settings.user_name} beat MyAgent at {game}", "lose": f"MyAgent beat {settings.user_name} at {game}",
                      "draw": f"{game} ended in a draw"}.get(outcome, f"finished {game}"))
         coins = {"win": GAME_COINS_WIN, "draw": GAME_COINS_DRAW}.get(outcome, 0)
         if coins:
@@ -232,7 +239,7 @@ async def run_intent(intent: Intent, speak: bool) -> str | None:
         memory.clear()
         reply, tone = random.choice(["Clean slate! What's up?", "Okay, forgotten. Fresh start."]), "neutral"
     elif intent.name == "greet":
-        # first hello of the session vs. "hey mimo" in the middle of a conversation
+        # first hello of the session vs. "hey myagent" in the middle of a conversation
         reply = random.choice([f"Hey {settings.user_name}!", f"Hi {settings.user_name}!",
                                f"{settings.user_name}! I was just thinking about you."] if not memory.messages
                               else ["I'm here.", "Yes?", "Mm-hm?", "Listening!"])

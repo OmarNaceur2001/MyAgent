@@ -1,4 +1,4 @@
-// MIMO's little sound effects, made in code with WebAudio: no audio files to ship.
+// MyAgent's little sound effects, made in code with WebAudio: no audio files to ship.
 // Soft sine/triangle tones, short and quiet, so they're cute rather than noisy.
 // Muting is remembered per computer (localStorage; if storage is unavailable, sound just stays on).
 
@@ -9,7 +9,7 @@ const SOUNDS: Record<string, Note[]> = {
   poke: [{ f: 520, t: 0, d: 0.12, type: "sine", slideTo: 880, v: 0.16 }],
   // a game move: tiny wooden click
   tick: [{ f: 1200, t: 0, d: 0.05, type: "triangle", v: 0.08 }],
-  // MIMO starts listening: two notes up
+  // MyAgent starts listening: two notes up
   listen: [
     { f: 660, t: 0, d: 0.1, v: 0.12 },
     { f: 990, t: 0.09, d: 0.14, v: 0.12 },
@@ -21,7 +21,7 @@ const SOUNDS: Record<string, Note[]> = {
     { f: 784, t: 0.2, d: 0.12 },
     { f: 1047, t: 0.3, d: 0.3 },
   ],
-  // MIMO wins: smug little two-step
+  // MyAgent wins: smug little two-step
   lose: [
     { f: 784, t: 0, d: 0.12, type: "triangle" },
     { f: 1047, t: 0.12, d: 0.22, type: "triangle" },
@@ -46,7 +46,7 @@ const SOUNDS: Record<string, Note[]> = {
 
 export type Sound = keyof typeof SOUNDS;
 
-const KEY = "mimo.sfx";
+const KEY = "myagent.sfx";
 let muted = false;
 try {
   muted = localStorage.getItem(KEY) === "off";

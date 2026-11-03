@@ -1,6 +1,6 @@
-// MIMO's voice: curious, a little dramatic, warmly supportive, often sleepy.
+// MyAgent's voice: curious, a little dramatic, warmly supportive, often sleepy.
 // Lines are grouped by situation. pick() never repeats the last few lines,
-// so MIMO doesn't sound like a broken record.
+// so MyAgent doesn't sound like a broken record.
 //
 // Rules for writing lines: short (fits a bubble), friendly, never guilt-trips,
 // never pretends to have done something it didn't do.
@@ -22,10 +22,10 @@ export const LINES = {
   timerDone: ["Ding! Your timer is done.", "Time's up!", "Beep beep! That's the timer."],
   breakOver: ["Break's over. Ready for another round?", "Back to it? I'm ready when you are."],
   offline: ["My brain isn't connected yet… start the agent and I'll wake up."],
-  mimoWins: ["Ha! I win! Again?", "Victory is mine! Want a rematch?", "Yesss! Did you let me win?"],
+  myAgentWins: ["Ha! I win! Again?", "Victory is mine! Want a rematch?", "Yesss! Did you let me win?"],
   youWin: ["Nooo! You got me. Rematch?", "Okay, you're good. Too good.", "You won?! I demand a rematch!"],
   draw: ["A draw! We're both geniuses.", "Nobody wins! Again?"],
-  mimoTurn: ["Hmm… my turn.", "Let me think…", "Ooh, I know!"],
+  myAgentTurn: ["Hmm… my turn.", "Let me think…", "Ooh, I know!"],
   memoryMatch: ["A pair!", "Nice!", "You found one!"],
   memoryDone: ["All pairs! Your memory is amazing.", "Done! That was fast!"],
   music: ["Ooh, I love this one!", "Dance time!", "Turn it up!"],

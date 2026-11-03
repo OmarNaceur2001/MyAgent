@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
 import type { Beat, Gaze, Mood } from "../character";
 import { isLateNight } from "./personality";
-import { greet, playBeat, speakLine, useMimo } from "./store";
+import { greet, playBeat, speakLine, useMyAgent } from "./store";
 
 /*
-  MIMO's "life": the small things that make it feel alive between real events.
+  MyAgent's "life": the small things that make it feel alive between real events.
     • blinks at random moments (sometimes twice)
     • eyes follow the cursor, then drift back when you stop moving
     • idle actions now and then (hum, stretch, look around, yawn late at night)
@@ -76,7 +76,7 @@ export function useLife(mood: Mood, anchor: RefObject<HTMLElement | null>, opts:
       // calm during focus, frequent-ish when idle, nothing while busy or asleep
       const wait = m === "focus" ? rand(70_000, 140_000) : rand(14_000, 32_000);
       t = setTimeout(() => {
-        const s = useMimo.getState();
+        const s = useMyAgent.getState();
         const quietFor = Date.now() - s.lastActivity;
         const m2 = moodRef.current;
         if (!s.beat && (m2 === "idle" || m2 === "focus")) {

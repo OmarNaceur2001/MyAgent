@@ -1,11 +1,11 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { ShieldAlert } from "lucide-react";
-import { answerConfirm, useMimo } from "../lib/store";
+import { answerConfirm, useMyAgent } from "../lib/store";
 
 // Shown whenever the agent wants to do something risky. Nothing happens
 // until the user clicks; no answer within a minute counts as "no".
 export function ConfirmCard() {
-  const confirm = useMimo((s) => s.confirm);
+  const confirm = useMyAgent((s) => s.confirm);
   return (
     <AnimatePresence>
       {confirm && (
@@ -20,7 +20,7 @@ export function ConfirmCard() {
         >
           <ShieldAlert size={26} strokeWidth={2.5} aria-hidden />
           <div>
-            <h3 id="confirm-title">MIMO needs your OK</h3>
+            <h3 id="confirm-title">MyAgent needs your OK</h3>
             <p>{confirm.details}</p>
           </div>
           <div className="confirm-actions">

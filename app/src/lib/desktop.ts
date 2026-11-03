@@ -13,17 +13,17 @@ type DesktopApi = {
 
 declare global {
   interface Window {
-    mimo?: DesktopApi;
+    myagent?: DesktopApi;
   }
 }
 
 export const desktop: DesktopApi = {
-  openMain: () => (window.mimo ? window.mimo.openMain() : window.open("?view=main", "_blank")),
-  companionMenu: () => window.mimo?.companionMenu(),
-  setCompanionHover: (h) => window.mimo?.setCompanionHover(h),
-  moveCompanion: (x, y) => window.mimo?.moveCompanion(x, y),
-  companionDragEnd: () => window.mimo?.companionDragEnd(),
-  onTalkShortcut: (cb) => window.mimo?.onTalkShortcut(cb) ?? (() => {}),
+  openMain: () => (window.myagent ? window.myagent.openMain() : window.open("?view=main", "_blank")),
+  companionMenu: () => window.myagent?.companionMenu(),
+  setCompanionHover: (h) => window.myagent?.setCompanionHover(h),
+  moveCompanion: (x, y) => window.myagent?.moveCompanion(x, y),
+  companionDragEnd: () => window.myagent?.companionDragEnd(),
+  onTalkShortcut: (cb) => window.myagent?.onTalkShortcut(cb) ?? (() => {}),
 };
 
-export const isDesktop = () => !!window.mimo;
+export const isDesktop = () => !!window.myagent;

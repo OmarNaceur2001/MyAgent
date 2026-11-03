@@ -1,4 +1,4 @@
-/* MIMO design tokens: change the look of the whole app from here. */
+/* MyAgent design tokens: change the look of the whole app from here. */
 @import "@fontsource/fredoka/500.css";
 @import "@fontsource/fredoka/600.css";
 @import "@fontsource/nunito/400.css";
@@ -17,14 +17,14 @@
   --peri: #c9b6f2;          /* lilac: selected things */
   --peri-deep: #9c86e0;
   --night: #2a2350;         /* screens, timers */
-  --mint: #7fe6c7;          /* MIMO's "ready" glow, success */
+  --mint: #7fe6c7;          /* MyAgent's "ready" glow, success */
   --mint-deep: #23936f;
   --coral: #ff9f93;         /* primary action, listening */
   --coral-deep: #d9604f;
   --butter: #ffd58a;        /* thinking, coins */
   --pink: #ff9fb0;
 
-  /* chrome around MIMO's room: soft tints + plum "keycap" buttons */
+  /* chrome around MyAgent's room: soft tints + plum "keycap" buttons */
   --plum: #2a2350;
   --plum-2: #3b2c66;
   --plum-edge: #15102b;
@@ -48,7 +48,7 @@
   --fs-2xl: 40px;
   --fs-timer: 88px;
 
-  /* shape: chunky outlines + offset "sticker" shadows, like MIMO himself */
+  /* shape: chunky outlines + offset "sticker" shadows, like MyAgent himself */
   --line: 3px solid var(--ink);
   --r-sm: 12px;
   --r-md: 20px;

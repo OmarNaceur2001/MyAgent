@@ -1,4 +1,4 @@
-// MIMO's tic-tac-toe brain. Pure functions, no UI, so it's easy to test.
+// MyAgent's tic-tac-toe brain. Pure functions, no UI, so it's easy to test.
 // He plays well but not perfectly: perfect play makes the game unwinnable,
 // which isn't fun. He always takes a winning move and usually blocks yours.
 
@@ -43,8 +43,8 @@ function winningMove(b: Board, who: "X" | "O"): number | null {
   return null;
 }
 
-/** MIMO plays "O". mistakeRate: chance he plays a random move instead of the best one. */
-export function mimoMove(b: Board, mistakeRate = 0.25, rand = Math.random): number {
+/** MyAgent plays "O". mistakeRate: chance he plays a random move instead of the best one. */
+export function myAgentMove(b: Board, mistakeRate = 0.25, rand = Math.random): number {
   const moves = empty(b);
   if (!moves.length) return -1;
   const win = winningMove(b, "O");

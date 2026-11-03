@@ -1,12 +1,12 @@
-/* Games sit on a "table" next to MIMO, in the same chunky sticker style. */
+/* Games sit on a "table" next to MyAgent, in the same chunky sticker style. */
 
-/* MIMO steps aside when a game is open */
-.stage[data-game="true"] .stage-mimo {
+/* MyAgent steps aside when a game is open */
+.stage[data-game="true"] .stage-myagent {
   justify-self: start;
   margin-left: clamp(8px, 4vw, 48px);
   transition: margin 0.4s;
 }
-/* bubble goes above MIMO's head so the game board never covers it */
+/* bubble goes above MyAgent's head so the game board never covers it */
 .stage[data-game="true"] .bubble { left: 0; right: auto; bottom: calc(100% + 6px); max-width: 230px; border-radius: 22px 22px 22px 6px; }
 
 .game-table {

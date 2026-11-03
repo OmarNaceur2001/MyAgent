@@ -4,8 +4,8 @@ import asyncio
 
 import pytest
 
-import mimo_agent.voice as voice_mod
-from mimo_agent.voice import Level, Voice, _speakable, wake_match
+import myagent_agent.voice as voice_mod
+from myagent_agent.voice import Level, Voice, _speakable, wake_match
 
 
 class FakeEars:
@@ -207,11 +207,15 @@ def test_noisy_room_raises_the_bar():
 
 
 @pytest.mark.parametrize("text,rest", [
+    ("Hey MyAgent.", ""),
+    ("hey my agent, play some lofi", "play some lofi"),
+    ("MyAgent!", ""),
+    ("Hi Meemo what time is it?", "what time is it"),
+    ("Okay, Nemo. Let's play tic-tac-toe.", "Let's play tic-tac-toe"),
+    # legacy "MIMO" spellings still wake the agent
     ("Hey MIMO.", ""),
     ("hey mimo, play some lofi", "play some lofi"),
     ("Mimo!", ""),
-    ("Hi Meemo what time is it?", "what time is it"),
-    ("Okay, Nemo. Let's play tic-tac-toe.", "Let's play tic-tac-toe"),
 ])
 def test_wake_word_heard(text, rest):
     assert wake_match(text) == rest
@@ -258,7 +262,7 @@ def test_wake_paused_while_speaking_and_recording():
 
 def test_greeting_said_into_mic_is_dropped():
     async def go():
-        v, sent, heard = make("Hey MIMO, tell me a joke")
+        v, sent, heard = make("Hey MyAgent, tell me a joke")
         await v.start_listening()
         v.ears.level.last_loud = v.ears.level.now()
         await v.stop_listening()
@@ -268,7 +272,7 @@ def test_greeting_said_into_mic_is_dropped():
 
 
 def test_prefs_persist(tmp_path):
-    from mimo_agent.prefs import Prefs
+    from myagent_agent.prefs import Prefs
 
     p = Prefs(tmp_path / "prefs.json")
     assert p.values == {"wake_word": True, "speak_replies": True}
@@ -278,14 +282,14 @@ def test_prefs_persist(tmp_path):
 
 
 def test_wake_listener_loop_with_fake_mic(monkeypatch):
-    """Silence → a 1 s burst of 'speech' → silence: the burst is transcribed once and wakes MIMO."""
+    """Silence → a 1 s burst of 'speech' → silence: the burst is transcribed once and wakes MyAgent."""
     import sys
     import threading
     import types
 
     import numpy as np
 
-    from mimo_agent.voice import BLOCK, WakeListener
+    from myagent_agent.voice import BLOCK, WakeListener
 
     quiet = np.full((BLOCK, 1), 0.002, dtype=np.float32)
     loud = np.full((BLOCK, 1), 0.1, dtype=np.float32)
@@ -312,7 +316,7 @@ def test_wake_listener_loop_with_fake_mic(monkeypatch):
 
     def transcribe(audio):
         heard.append(len(audio))
-        return "Hey MIMO, play jazz"
+        return "Hey MyAgent, play jazz"
 
     def on_wake(rest):
         heard.append(rest)

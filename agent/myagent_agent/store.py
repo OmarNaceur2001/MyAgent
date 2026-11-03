@@ -1,6 +1,6 @@
 """Small SQLite store: focus sessions and coins.
 
-One file (agent/data/mimo.db), no server, no setup.
+One file (agent/data/myagent.db), no server, no setup.
 """
 
 from __future__ import annotations

@@ -1,21 +1,21 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import type { GameId } from "../lib/events";
-import { closeGame, useMimo } from "../lib/store";
+import { closeGame, useMyAgent } from "../lib/store";
 import { Memory } from "./Memory";
 import { RockPaperScissors } from "./RockPaperScissors";
 import { TicTacToe } from "./TicTacToe";
 import "./games.css";
 
 export const GAME_INFO: Record<GameId, { name: string; blurb: string }> = {
-  tictactoe: { name: "Tic-tac-toe", blurb: "Three in a row. MIMO is good, but not perfect." },
+  tictactoe: { name: "Tic-tac-toe", blurb: "Three in a row. MyAgent is good, but not perfect." },
   rps: { name: "Rock, paper, scissors", blurb: "First to two wins. He can't read your mind. Probably." },
   memory: { name: "Memory match", blurb: "Flip cards and find the pairs." },
 };
 
-// The game table: slides in next to MIMO on his stage.
+// The game table: slides in next to MyAgent on his stage.
 export function GameStage() {
-  const game = useMimo((s) => s.game);
+  const game = useMyAgent((s) => s.game);
   return (
     <AnimatePresence>
       {game && (

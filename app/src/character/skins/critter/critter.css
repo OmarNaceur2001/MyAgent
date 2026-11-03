@@ -1,4 +1,4 @@
-/* Critter MIMO motion. CSS keyframes only: runs on the compositor, nearly free. */
+/* Critter MyAgent motion. CSS keyframes only: runs on the compositor, nearly free. */
 
 .critter .part { transform-box: fill-box; }
 .critter.pokeable { cursor: pointer; }

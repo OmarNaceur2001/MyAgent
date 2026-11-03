@@ -1,10 +1,10 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { MOOD_LABEL } from "../character";
-import { useMimo, useMood } from "../lib/store";
+import { useMyAgent, useMood } from "../lib/store";
 import { GameStage } from "../games/GameStage";
 import { ConfirmCard } from "./ConfirmCard";
-import { LiveMimo } from "./LiveMimo";
+import { LiveMyAgent } from "./LiveMyAgent";
 import { PALETTE, Room, type Scene } from "./Room";
 import { TalkBar } from "./TalkBar";
 import { formatClock, useSecondsLeft } from "./time";
@@ -12,16 +12,16 @@ import { formatClock, useSecondsLeft } from "./time";
 // Bubbles stay long enough to read: ~60 ms per character, between 4 and 12 s.
 const bubbleMs = (text: string) => Math.min(12000, Math.max(4000, text.length * 60));
 
-// The heart of the main window: MIMO in its room, what it's saying,
+// The heart of the main window: MyAgent in its room, what it's saying,
 // and the bar to talk to it.
 export function Stage() {
   const mood = useMood();
-  const timer = useMimo((s) => s.timer);
-  const bubble = useMimo((s) => s.bubble);
-  const connected = useMimo((s) => s.connected);
-  const inGame = useMimo((s) => s.game !== null);
-  const wakeOn = useMimo((s) => !!s.features?.wake && !!s.prefs?.wake_word);
-  const idle = useMimo((s) => s.agentState === "idle");
+  const timer = useMyAgent((s) => s.timer);
+  const bubble = useMyAgent((s) => s.bubble);
+  const connected = useMyAgent((s) => s.connected);
+  const inGame = useMyAgent((s) => s.game !== null);
+  const wakeOn = useMyAgent((s) => !!s.features?.wake && !!s.prefs?.wake_word);
+  const idle = useMyAgent((s) => s.agentState === "idle");
   const left = useSecondsLeft();
   const [shownBubble, setShownBubble] = useState<string | null>(null);
 
@@ -32,7 +32,7 @@ export function Stage() {
     return () => clearTimeout(t);
   }, [bubble]);
 
-  const now = useMimo((s) => s.now);
+  const now = useMyAgent((s) => s.now);
   const d = new Date(now);
   const clock = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
   const scene: Scene =
@@ -44,12 +44,12 @@ export function Stage() {
       <ConfirmCard />
       {connected && wakeOn && idle && !inGame && (
         <div className="wake-hint" aria-live="polite">
-          <span className="wake-dot" aria-hidden /> Say “Hey MIMO”
+          <span className="wake-dot" aria-hidden /> Say “Hey MyAgent”
         </div>
       )}
       <GameStage />
 
-      <div className="stage-mimo">
+      <div className="stage-myagent">
         <AnimatePresence>
           {shownBubble && (
             <motion.div
@@ -66,7 +66,7 @@ export function Stage() {
           )}
         </AnimatePresence>
         <span className="rug" style={{ background: PALETTE[scene].rug }} aria-hidden />
-        <LiveMimo size={230} chatty />
+        <LiveMyAgent size={230} chatty />
         <div className="mood-chip" aria-live="polite">
           <span className="dot" data-mood={mood} />
           {connected ? MOOD_LABEL[mood] : "Agent offline"}

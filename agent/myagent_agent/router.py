@@ -66,9 +66,9 @@ def _game(text: str) -> str | None:
 
 def route(raw: str) -> Intent | None:
     text = " ".join(raw.lower().strip().rstrip(".!?").split())
-    if re.fullmatch(r"(hey|hi|hello|ok|okay)?\s*mimo[,!]?", text):
+    if re.fullmatch(r"(hey|hi|hello|ok|okay)?\s*(?:my\s*agent|myagent|mimo)[,!]?", text):
         return Intent("greet")
-    text = re.sub(r"^(hey |hi |ok |okay )?mimo[,!]?\s*", "", text)
+    text = re.sub(r"^(hey |hi |ok |okay )?(?:my\s*agent|myagent|mimo)[,!]?\s*", "", text)
     if not text:
         return None
 
@@ -76,8 +76,8 @@ def route(raw: str) -> Intent | None:
     if re.fullmatch(r"(let'?s )?(start over|start fresh|new conversation|forget (that|everything|what i said))", text):
         return Intent("memory.clear")
 
-    # greetings ("hey mimo" was stripped above, so a bare greeting is left)
-    if re.fullmatch(r"(hey|hi|hello|yo|good (morning|afternoon|evening))( there)?( mimo)?", text) or text in ("mimo",):
+    # greetings ("hey myagent" was stripped above, so a bare greeting is left)
+    if re.fullmatch(r"(hey|hi|hello|yo|good (morning|afternoon|evening))( there)?( (?:my\s*agent|myagent|mimo))?", text) or text in ("myagent", "my agent", "mimo"):
         return Intent("greet")
 
     # games come before music: "let's play tic-tac-toe" is a game, not a song

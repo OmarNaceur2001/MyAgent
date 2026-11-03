@@ -1,21 +1,21 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Maximize2 } from "lucide-react";
 import { useEffect, useRef, useState, type PointerEvent } from "react";
-import { LiveMimo } from "../components/LiveMimo";
+import { LiveMyAgent } from "../components/LiveMyAgent";
 import { MicButton } from "../components/MicButton";
 import { formatClock, useSecondsLeft } from "../components/time";
 import { desktop } from "../lib/desktop";
-import { send, useMimo } from "../lib/store";
+import { send, useMyAgent } from "../lib/store";
 import "./companion.css";
 
-// The little MIMO that floats on the desktop.
+// The little MyAgent that floats on the desktop.
 // Drag it anywhere; double-click to open the full app; right-click for the menu.
 export function Companion() {
-  const bubble = useMimo((s) => s.bubble);
-  const timer = useMimo((s) => s.timer);
+  const bubble = useMyAgent((s) => s.bubble);
+  const timer = useMyAgent((s) => s.timer);
   const left = useSecondsLeft();
   const [text, setText] = useState<string | null>(null);
-  // Only MIMO and its buttons catch the mouse; the empty window area lets clicks through.
+  // Only MyAgent and its buttons catch the mouse; the empty window area lets clicks through.
   const hover = {
     onMouseEnter: () => desktop.setCompanionHover(true),
     onMouseLeave: () => desktop.setCompanionHover(false),
@@ -45,7 +45,7 @@ export function Companion() {
   useEffect(
     () =>
       desktop.onTalkShortcut(() => {
-        const s = useMimo.getState();
+        const s = useMyAgent.getState();
         if (!s.features?.voice) return;
         send(s.agentState === "listening" ? "voice.stop" : "voice.start");
       }),
@@ -96,8 +96,8 @@ export function Companion() {
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
-        onDoubleClick={() => desktop.openMain()} title="Double-click to open MIMO">
-        <LiveMimo size={160} shadow={false} />
+        onDoubleClick={() => desktop.openMain()} title="Double-click to open MyAgent">
+        <LiveMyAgent size={160} shadow={false} />
       </div>
 
       <div className="c-footer" {...hover}>
@@ -107,7 +107,7 @@ export function Companion() {
           </span>
         )}
         <MicButton small />
-        <button className="c-open" onClick={() => desktop.openMain()} aria-label="Open MIMO" title="Open MIMO">
+        <button className="c-open" onClick={() => desktop.openMain()} aria-label="Open MyAgent" title="Open MyAgent">
           <Maximize2 size={14} strokeWidth={3} />
         </button>
       </div>

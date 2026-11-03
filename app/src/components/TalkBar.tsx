@@ -1,18 +1,18 @@
 import { SendHorizontal, Square } from "lucide-react";
 import { useState, type FormEvent } from "react";
-import { sayToMimo, send, useMimo } from "../lib/store";
+import { sayToMyAgent, send, useMyAgent } from "../lib/store";
 import { MicButton } from "./MicButton";
 
-// Type or talk to MIMO.
+// Type or talk to MyAgent.
 export function TalkBar({ compact = false }: { compact?: boolean }) {
   const [text, setText] = useState("");
-  const connected = useMimo((s) => s.connected);
-  const busy = useMimo((s) => ["thinking", "working", "waiting_confirmation"].includes(s.agentState));
+  const connected = useMyAgent((s) => s.connected);
+  const busy = useMyAgent((s) => ["thinking", "working", "waiting_confirmation"].includes(s.agentState));
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!text.trim()) return;
-    if (sayToMimo(text)) setText("");
+    if (sayToMyAgent(text)) setText("");
   };
 
   return (
@@ -20,11 +20,11 @@ export function TalkBar({ compact = false }: { compact?: boolean }) {
       <input
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder={connected ? "Try “let's play tic-tac-toe”" : "Start the agent to talk to MIMO"}
-        aria-label="Message MIMO"
+        placeholder={connected ? "Try “let's play tic-tac-toe”" : "Start the agent to talk to MyAgent"}
+        aria-label="Message MyAgent"
       />
       {busy ? (
-        <button type="button" className="icon-btn stop" aria-label="Stop MIMO" title="Stop" onClick={() => send("agent.cancel")}>
+        <button type="button" className="icon-btn stop" aria-label="Stop MyAgent" title="Stop" onClick={() => send("agent.cancel")}>
           <Square size={18} strokeWidth={2.5} />
         </button>
       ) : (

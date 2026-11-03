@@ -1,8 +1,8 @@
 import { Coffee, Sparkles, Timer as TimerIcon } from "lucide-react";
-import { sayToMimo, send, useMimo } from "../lib/store";
+import { sayToMyAgent, send, useMyAgent } from "../lib/store";
 
 const TRY_SAYING = [
-  "Hey MIMO!",
+  "Hey MyAgent!",
   "Let's play tic-tac-toe",
   "Play some lofi hip hop",
   "Tell me a joke",
@@ -17,9 +17,9 @@ function greeting(hour: number) {
 }
 
 export function HomePanel({ onFocus }: { onFocus: () => void }) {
-  const stats = useMimo((s) => s.stats);
-  const connected = useMimo((s) => s.connected);
-  const timer = useMimo((s) => s.timer);
+  const stats = useMyAgent((s) => s.stats);
+  const connected = useMyAgent((s) => s.connected);
+  const timer = useMyAgent((s) => s.timer);
 
   return (
     <div className="panel-body">
@@ -30,9 +30,9 @@ export function HomePanel({ onFocus }: { onFocus: () => void }) {
 
       {!connected && (
         <div className="notice" role="alert">
-          <strong>MIMO's agent isn't running.</strong>
+          <strong>MyAgent's agent isn't running.</strong>
           <span>
-            Open a terminal in <code>agent</code> and run <code>python run.py</code>. MIMO wakes up as soon as it's
+            Open a terminal in <code>agent</code> and run <code>python run.py</code>. MyAgent wakes up as soon as it's
             on.
           </span>
         </div>
@@ -80,7 +80,7 @@ export function HomePanel({ onFocus }: { onFocus: () => void }) {
       <ul className="try-list">
         {TRY_SAYING.map((t) => (
           <li key={t}>
-            <button className="chip" disabled={!connected} onClick={() => sayToMimo(t)}>
+            <button className="chip" disabled={!connected} onClick={() => sayToMyAgent(t)}>
               {t}
             </button>
           </li>

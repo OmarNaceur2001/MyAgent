@@ -1,15 +1,15 @@
 import { Brain, Grid3x3, Hand, Music } from "lucide-react";
 import { GAME_INFO } from "../games/GameStage";
 import type { GameId } from "../lib/events";
-import { openGame, sayToMimo, useMimo } from "../lib/store";
+import { openGame, sayToMyAgent, useMyAgent } from "../lib/store";
 
 const ICON: Record<GameId, typeof Grid3x3> = { tictactoe: Grid3x3, rps: Hand, memory: Brain };
 const SONG_IDEAS = ["lofi hip hop", "relaxing piano", "upbeat study music"];
 
 export function PlayPanel() {
-  const game = useMimo((s) => s.game);
-  const coins = useMimo((s) => s.stats.coins);
-  const music = useMimo((s) => (s.music && s.music.until > s.now ? s.music.title : null));
+  const game = useMyAgent((s) => s.game);
+  const coins = useMyAgent((s) => s.stats.coins);
+  const music = useMyAgent((s) => (s.music && s.music.until > s.now ? s.music.title : null));
 
   return (
     <div className="panel-body">
@@ -44,7 +44,7 @@ export function PlayPanel() {
       </p>
       <div className="quick-row">
         {SONG_IDEAS.map((s) => (
-          <button key={s} className="chip" onClick={() => sayToMimo(`play ${s}`)}>
+          <button key={s} className="chip" onClick={() => sayToMyAgent(`play ${s}`)}>
             {s}
           </button>
         ))}
