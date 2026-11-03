@@ -16,7 +16,7 @@ def test_keeps_recent_and_starts_with_user(tmp_path):
     for i in range(5):
         m.add(f"q{i}", f"a{i}")
     assert [x["content"] for x in m.recent()] == ["q3", "a3", "q4", "a4"]
-    m.note("Aya beat MyAgent at tic-tac-toe")
+    m.note("Omar beat MyAgent at tic-tac-toe")
     assert m.recent()[0]["role"] == "user" and m.recent()[-1]["content"].startswith("[")
 
 

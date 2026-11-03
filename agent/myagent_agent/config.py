@@ -18,7 +18,7 @@ def _get_env(key: str, legacy_key: str, default: str) -> str:
 @dataclass
 class Settings:
     ollama_url: str = _get_env("MYAGENT_OLLAMA_URL", "MIMO_OLLAMA_URL", "http://127.0.0.1:11434")
-    user_name: str = _get_env("MYAGENT_USER_NAME", "MIMO_USER_NAME", "Aya")
+    user_name: str = _get_env("MYAGENT_USER_NAME", "MIMO_USER_NAME", "Omar")
     model: str = _get_env("MYAGENT_MODEL", "MIMO_MODEL", "qwen2.5:3b")
     # Unload the model from the GPU after this much idle time (keeps the PC cool).
     keep_alive: str = _get_env("MYAGENT_KEEP_ALIVE", "MIMO_KEEP_ALIVE", "2m")

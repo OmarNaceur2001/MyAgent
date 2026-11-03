@@ -30,7 +30,7 @@ class ShortMemory:
         self._trim_and_save()
 
     def note(self, text: str) -> None:
-        """Something that happened without words, e.g. 'Aya won tic-tac-toe'."""
+        """Something that happened without words, e.g. 'Omar won tic-tac-toe'."""
         self.messages.append({"role": "user", "content": f"[{text}]"})
         self._trim_and_save()
 

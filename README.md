@@ -99,7 +99,7 @@ is running to see every mood side by side.
 | Variable | Default | |
 |---|---|---|
 | `MYAGENT_MODEL` | `qwen2.5:3b` | Ollama model |
-| `MYAGENT_USER_NAME` | `Aya` | what MyAgent calls you |
+| `MYAGENT_USER_NAME` | `Omar` | what MyAgent calls you |
 | `MYAGENT_KEEP_ALIVE` | `2m` | how long the model stays loaded when idle |
 | `MYAGENT_WHISPER_MODEL` | `base.en` | `small.en` is more accurate, slower |
 | `MYAGENT_PIPER_VOICE` | `en_US-amy-medium` | any Piper voice in `agent/voices` |
