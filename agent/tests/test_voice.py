@@ -5,7 +5,7 @@ import asyncio
 import pytest
 
 import myagent_agent.voice as voice_mod
-from myagent_agent.voice import Level, Voice, _speakable, wake_match
+from myagent_agent.voice import Level, Voice, _input_stream, _speakable, wake_match
 
 
 class FakeEars:
@@ -54,6 +54,42 @@ def make(text="open chrome", audio=b"x"):
 
 def states(sent):
     return [e["payload"]["state"] for e in sent if e["type"] == "agent.status"]
+
+
+
+def test_input_stream_resamples_unsupported_native_rate():
+    from types import SimpleNamespace
+
+    import numpy as np
+
+    captured = {}
+
+    class FakeSoundDevice:
+        default = SimpleNamespace(device=(2, -1))
+
+        @staticmethod
+        def query_devices(device, kind):
+            assert (device, kind) == (2, "input")
+            return {"default_samplerate": 48000}
+
+        @staticmethod
+        def check_input_settings(**_kwargs):
+            raise ValueError("16 kHz is unsupported")
+
+        @staticmethod
+        def InputStream(**kwargs):
+            captured.update(kwargs)
+            return SimpleNamespace()
+
+    received = []
+    _input_stream(FakeSoundDevice, lambda data, *_: received.append(data))
+
+    assert captured["device"] == 2
+    assert captured["samplerate"] == 48000
+    assert captured["blocksize"] == 4800
+
+    captured["callback"](np.ones((4800, 1), dtype=np.float32), 4800, None, None)
+    assert received[0].shape == (1600, 1)
 
 
 def test_push_to_talk_sends_transcript():
