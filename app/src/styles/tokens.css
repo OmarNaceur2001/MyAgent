@@ -1,4 +1,5 @@
-/* MyAgent design tokens: change the look of the whole app from here. */
+/* Warm, grounded palette sampled to complement Omar's cream shirt, dark hair,
+   espresso frames and softly lit skin tones. */
 @import "@fontsource/fredoka/500.css";
 @import "@fontsource/fredoka/600.css";
 @import "@fontsource/nunito/400.css";
@@ -6,38 +7,35 @@
 @import "@fontsource/nunito/700.css";
 
 :root {
-  /* palette: "lofi sunset" — dusty pink, lilac, peach, deep plum lines */
-  --ink: #2a2340;           /* text + every outline */
-  --ink-soft: #5e5276;
-  --ink-faint: #7f7396;
-  --sky: #efd6e3;           /* app background */
-  --sky-deep: #e5c2d5;
-  --paper: #fff7f2;         /* panels */
-  --paper-2: #fbecf3;
-  --peri: #c9b6f2;          /* lilac: selected things */
-  --peri-deep: #9c86e0;
-  --night: #2a2350;         /* screens, timers */
-  --mint: #7fe6c7;          /* MyAgent's "ready" glow, success */
-  --mint-deep: #23936f;
-  --coral: #ff9f93;         /* primary action, listening */
-  --coral-deep: #d9604f;
-  --butter: #ffd58a;        /* thinking, coins */
-  --pink: #ff9fb0;
+  --ink: #302A24;
+  --ink-soft: #695B4F;
+  --ink-faint: #897B6E;
+  --sky: #EAE1D6;
+  --sky-deep: #DED1C1;
+  --paper: #FBF8F2;
+  --paper-2: #F3ECE3;
+  --peri: #B9C6B0;
+  --peri-deep: #91A187;
+  --night: #302C28;
+  --mint: #A9BA9D;
+  --mint-deep: #5B7352;
+  --coral: #C98A69;
+  --coral-deep: #9E6249;
+  --butter: #E7BF78;
+  --pink: #D6A6A0;
 
-  /* chrome around MyAgent's room: soft tints + plum "keycap" buttons */
-  --plum: #2a2350;
-  --plum-2: #3b2c66;
-  --plum-edge: #15102b;
-  --lilac: #c9b6f2;
-  --lilac-edge: #a792e0;
-  --lilac-tint: #efe8fd;
-  --pink-tint: #fbe4ee;
-  --pink-edge: #efbfd1;
-  --peach-tint: #ffe9dc;
-  --peach-edge: #f6c8ad;
-  --line-soft: #ebcfdc;
+  --plum: #40362D;
+  --plum-2: #58483B;
+  --plum-edge: #28221D;
+  --lilac: #BBC7B2;
+  --lilac-edge: #93A087;
+  --lilac-tint: #E9EEE5;
+  --pink-tint: #F2E5DE;
+  --pink-edge: #DFC9BB;
+  --peach-tint: #F7E9D9;
+  --peach-edge: #E5C9AB;
+  --line-soft: #DED1C3;
 
-  /* type */
   --font-display: "Fredoka", "Nunito", system-ui, sans-serif;
   --font-body: "Nunito", system-ui, sans-serif;
   --fs-xs: 12px;
@@ -48,7 +46,6 @@
   --fs-2xl: 40px;
   --fs-timer: 88px;
 
-  /* shape: chunky outlines + offset "sticker" shadows, like MyAgent himself */
   --line: 3px solid var(--ink);
   --r-sm: 12px;
   --r-md: 20px;
@@ -66,9 +63,7 @@
 }
 
 * { box-sizing: border-box; }
-
 html, body, #root { height: 100%; margin: 0; }
-
 body {
   font-family: var(--font-body);
   font-size: var(--fs-md);
@@ -76,13 +71,9 @@ body {
   background: var(--sky);
   -webkit-font-smoothing: antialiased;
 }
-
 h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; line-height: 1.15; }
-
 button { font: inherit; color: inherit; }
-
 :focus-visible { outline: 3px solid var(--coral); outline-offset: 3px; border-radius: 8px; }
-
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
