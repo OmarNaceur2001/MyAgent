@@ -31,7 +31,7 @@ export const PALETTE: Record<Scene, Palette> = {
     desk: "#F6C2A8",
     deskFront: "#E9A58C",
     deskEdge: "#FBD6C2",
-    rug: "#C9B6F2",
+    rug: "#ADBDA5",
     lights: 0.25,
     lamp: 0,
   },
@@ -39,7 +39,7 @@ export const PALETTE: Record<Scene, Palette> = {
     wall: "#3B2C66",
     stripe: "#35285D",
     sky: ["#16133A", "#2E2563", "#5B3F8C"],
-    sun: "#FFF3C8",
+    sun: "#F1DCA8",
     desk: "#6B4C8F",
     deskFront: "#553A78",
     deskEdge: "#82619F",
@@ -55,13 +55,13 @@ export const PALETTE: Record<Scene, Palette> = {
     desk: "#F4B896",
     deskFront: "#E39A7D",
     deskEdge: "#FBD0B6",
-    rug: "#7FE6C7",
+    rug: "#A9BA9D",
     lights: 0.45,
     lamp: 0,
   },
 };
 
-const INK = "#2A2340";
+const INK = "#332B24";
 const S = { stroke: INK, strokeWidth: 5, strokeLinejoin: "round" as const, strokeLinecap: "round" as const };
 
 export function Room({ scene, clock }: { scene: Scene; clock: string }) {
@@ -77,12 +77,12 @@ export function Room({ scene, clock }: { scene: Scene; clock: string }) {
           <stop offset="1" stopColor={p.sky[2]} />
         </linearGradient>
         <radialGradient id="room-lamp">
-          <stop offset="0" stopColor="#FFD58A" stopOpacity=".55" />
-          <stop offset="1" stopColor="#FFD58A" stopOpacity="0" />
+          <stop offset="0" stopColor="#E6BD78" stopOpacity=".55" />
+          <stop offset="1" stopColor="#E6BD78" stopOpacity="0" />
         </radialGradient>
         <radialGradient id="room-bulb">
-          <stop offset="0" stopColor="#FFE9A8" stopOpacity="1" />
-          <stop offset="1" stopColor="#FFE9A8" stopOpacity="0" />
+          <stop offset="0" stopColor="#F2D99D" stopOpacity="1" />
+          <stop offset="1" stopColor="#F2D99D" stopOpacity="0" />
         </radialGradient>
         <clipPath id="room-window">
           <rect x="104" y="64" width="232" height="232" rx="30" />
@@ -104,7 +104,7 @@ export function Room({ scene, clock }: { scene: Scene; clock: string }) {
             {[
               [140, 100], [190, 140], [230, 92], [150, 200], [260, 210], [310, 180], [200, 250],
             ].map(([x, y], i) => (
-              <circle key={i} className="room-star" style={{ animationDelay: `${i * 0.5}s` }} cx={x} cy={y} r={i % 3 ? 2.2 : 3.4} fill="#FFF3C8" />
+              <circle key={i} className="room-star" style={{ animationDelay: `${i * 0.5}s` }} cx={x} cy={y} r={i % 3 ? 2.2 : 3.4} fill="#F1DCA8" />
             ))}
           </>
         ) : (
@@ -121,19 +121,19 @@ export function Room({ scene, clock }: { scene: Scene; clock: string }) {
       </g>
       <rect x="104" y="64" width="232" height="232" rx="30" fill="none" {...S} />
       <path d="M220 64 V296 M104 180 H336" {...S} />
-      <rect x="90" y="290" width="260" height="20" rx="10" fill="#FFF7F2" {...S} />
+      <rect x="90" y="290" width="260" height="20" rx="10" fill="#FCF8F1" {...S} />
 
       {/* sticky notes */}
       <g transform="translate(600 100) rotate(-6)">
-        <rect width="54" height="54" rx="4" fill="#FFE59A" {...S} strokeWidth={4} />
+        <rect width="54" height="54" rx="4" fill="#F0D398" {...S} strokeWidth={4} />
         <path d="M12 20 H42 M12 32 H34" stroke={INK} strokeWidth="3" strokeLinecap="round" opacity=".5" />
       </g>
       <g transform="translate(664 132) rotate(8)">
-        <rect width="48" height="48" rx="4" fill="#B8F0DC" {...S} strokeWidth={4} />
-        <path d="M24 14 C 16 4, 4 16, 24 32 C 44 16, 32 4, 24 14Z" fill="#FF9FB0" stroke={INK} strokeWidth="3" />
+        <rect width="48" height="48" rx="4" fill="#A9BA9D" {...S} strokeWidth={4} />
+        <path d="M24 14 C 16 4, 4 16, 24 32 C 44 16, 32 4, 24 14Z" fill="#D6A6A0" stroke={INK} strokeWidth="3" />
       </g>
       <g transform="translate(612 172) rotate(3)">
-        <rect width="50" height="44" rx="4" fill="#D9C8FF" {...S} strokeWidth={4} />
+        <rect width="50" height="44" rx="4" fill="#D7C7A8" {...S} strokeWidth={4} />
         <path d="M10 16 l6 6 l12 -12" fill="none" stroke={INK} strokeWidth="3.5" strokeLinecap="round" />
       </g>
 
@@ -143,7 +143,7 @@ export function Room({ scene, clock }: { scene: Scene; clock: string }) {
         const tt = (i + 1) / 14;
         const x = (1 - tt) ** 2 * 40 + 2 * (1 - tt) * tt * 400 + tt ** 2 * 760;
         const y = (1 - tt) ** 2 * 30 + 2 * (1 - tt) * tt * 120 + tt ** 2 * 30;
-        const c = ["#FFD58A", "#FF9FB0", "#B8F0DC", "#D9C8FF"][i % 4];
+        const c = ["#E6BD78", "#D6A6A0", "#A9BA9D", "#D7C7A8"][i % 4];
         return (
           <g key={i}>
             <circle className="room-bulb" style={{ animationDelay: `${(i % 5) * 0.4}s` }} cx={x} cy={y + 14} r="16" fill="url(#room-bulb)" opacity={p.lights} />
@@ -163,34 +163,34 @@ export function Room({ scene, clock }: { scene: Scene; clock: string }) {
 
       {/* plant in an upside-down keycap */}
       <g transform="translate(122 372) scale(.92)">
-        <path d="M36 0 C 10 -36, 22 -78, 46 -84 C 50 -54, 46 -24, 36 0Z" fill="#7DD3A8" {...S} strokeWidth={4} />
-        <path d="M38 0 C 52 -34, 86 -56, 104 -46 C 92 -22, 66 -6, 38 0Z" fill="#6CC79A" {...S} strokeWidth={4} />
-        <path d="M34 0 C 16 -18, -14 -22, -20 -8 C -2 2, 16 4, 34 0Z" fill="#8FDDB5" {...S} strokeWidth={4} />
-        <path d="M2 0 H74 L66 80 H10Z" fill="#FF9FB0" {...S} />
+        <path d="M36 0 C 10 -36, 22 -78, 46 -84 C 50 -54, 46 -24, 36 0Z" fill="#8FAE8D" {...S} strokeWidth={4} />
+        <path d="M38 0 C 52 -34, 86 -56, 104 -46 C 92 -22, 66 -6, 38 0Z" fill="#85A582" {...S} strokeWidth={4} />
+        <path d="M34 0 C 16 -18, -14 -22, -20 -8 C -2 2, 16 4, 34 0Z" fill="#A0B99A" {...S} strokeWidth={4} />
+        <path d="M2 0 H74 L66 80 H10Z" fill="#D6A6A0" {...S} />
         <rect x="14" y="12" width="48" height="24" rx="6" fill="#fff" opacity=".45" />
       </g>
 
       {/* USB lamp */}
       <g transform="translate(218 300)">
         <path d="M26 140 C 26 90, 10 60, 40 30" fill="none" stroke={INK} strokeWidth="8" strokeLinecap="round" />
-        <path d="M26 140 C 26 90, 10 60, 40 30" fill="none" stroke="#C9B6F2" strokeWidth="3.5" strokeLinecap="round" />
-        <path d="M18 34 C 20 8, 66 4, 72 28Z" fill="#FFD58A" {...S} strokeWidth={4} transform="rotate(14 45 22)" />
-        <ellipse cx="50" cy="38" rx="14" ry="4" fill="#FFF3C8" opacity={0.4 + p.lamp * 0.6} />
-        <rect x="10" y="132" width="32" height="12" rx="4" fill="#C9C3E6" {...S} strokeWidth={4} />
+        <path d="M26 140 C 26 90, 10 60, 40 30" fill="none" stroke="#ADBDA5" strokeWidth="3.5" strokeLinecap="round" />
+        <path d="M18 34 C 20 8, 66 4, 72 28Z" fill="#E6BD78" {...S} strokeWidth={4} transform="rotate(14 45 22)" />
+        <ellipse cx="50" cy="38" rx="14" ry="4" fill="#F1DCA8" opacity={0.4 + p.lamp * 0.6} />
+        <rect x="10" y="132" width="32" height="12" rx="4" fill="#BCA98E" {...S} strokeWidth={4} />
       </g>
 
       {/* floppy-disk bed with a sock blanket */}
       <g transform="translate(250 404)">
-        <rect x="0" y="0" width="110" height="36" rx="7" fill="#7C8CE6" {...S} strokeWidth={4} />
-        <rect x="26" y="4" width="48" height="14" rx="3" fill="#D6DCFA" stroke={INK} strokeWidth="3" />
-        <ellipse cx="20" cy="-2" rx="16" ry="9" fill="#FFF7F2" stroke={INK} strokeWidth="3.5" />
-        <path d="M34 -6 C 58 -12, 92 -12, 108 -4 L 106 14 L 36 14Z" fill="#FF9F93" stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
+        <rect x="0" y="0" width="110" height="36" rx="7" fill="#7B8A89" {...S} strokeWidth={4} />
+        <rect x="26" y="4" width="48" height="14" rx="3" fill="#E3DED2" stroke={INK} strokeWidth="3" />
+        <ellipse cx="20" cy="-2" rx="16" ry="9" fill="#FCF8F1" stroke={INK} strokeWidth="3.5" />
+        <path d="M34 -6 C 58 -12, 92 -12, 108 -4 L 106 14 L 36 14Z" fill="#C98A69" stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
         <path d="M44 0 H100 M44 7 H100" stroke="#FFD2C8" strokeWidth="3" strokeLinecap="round" />
       </g>
 
       {/* mug */}
       <g transform="translate(470 402)">
-        <path d="M0 0 H34 V30 C 34 40, 0 40, 0 30Z" fill="#B8F0DC" {...S} strokeWidth={4} />
+        <path d="M0 0 H34 V30 C 34 40, 0 40, 0 30Z" fill="#A9BA9D" {...S} strokeWidth={4} />
         <path d="M34 8 C 46 8, 46 24, 34 24" fill="none" {...S} strokeWidth={4} />
         <path className="room-steam" d="M10 -8 C 4 -16, 14 -20, 8 -30" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" />
         <path className="room-steam" style={{ animationDelay: "1s" }} d="M24 -8 C 18 -16, 28 -20, 22 -30" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" />
@@ -199,24 +199,24 @@ export function Room({ scene, clock }: { scene: Scene; clock: string }) {
       {/* MyAgent's retro monitor */}
       <g transform="translate(526 318) scale(.8)">
         <rect x="-4" y="4" width="196" height="150" rx="26" fill="#A792E0" {...S} />
-        <rect x="0" y="0" width="188" height="146" rx="24" fill="#C9B6F2" {...S} />
+        <rect x="0" y="0" width="188" height="146" rx="24" fill="#ADBDA5" {...S} />
         <rect x="18" y="16" width="152" height="104" rx="16" fill="#2A2350" stroke={INK} strokeWidth="4" />
         <rect x="18" y="16" width="152" height="104" rx="16" fill="url(#room-sky)" opacity=".12" />
-        <text x="94" y="70" textAnchor="middle" fontFamily="Fredoka, sans-serif" fontWeight="600" fontSize="38" fill="#7FE6C7" className="room-clock">
+        <text x="94" y="70" textAnchor="middle" fontFamily="Fredoka, sans-serif" fontWeight="600" fontSize="38" fill="#A9BA9D" className="room-clock">
           {clock}
         </text>
-        <path d="M84 92 h6 v-6 h6 v6 h6 v6 h-6 v6 h-6 v-6 h-6z" fill="#FF9FB0" />
-        <circle cx="160" cy="132" r="5" fill="#7FE6C7" stroke={INK} strokeWidth="2.5" />
+        <path d="M84 92 h6 v-6 h6 v6 h6 v6 h-6 v6 h-6 v-6 h-6z" fill="#D6A6A0" />
+        <circle cx="160" cy="132" r="5" fill="#A9BA9D" stroke={INK} strokeWidth="2.5" />
         <rect x="30" y="128" width="40" height="7" rx="3.5" fill="#A792E0" />
         <rect x="70" y="146" width="48" height="12" fill="#A792E0" {...S} strokeWidth={4} />
       </g>
 
       {/* keyboard */}
       <g transform="translate(484 452) scale(.82)">
-        <path d="M0 0 H250 L262 26 H-12Z" fill="#FFF7F2" {...S} strokeWidth={4} />
+        <path d="M0 0 H250 L262 26 H-12Z" fill="#FCF8F1" {...S} strokeWidth={4} />
         {Array.from({ length: 2 }, (_, r) =>
           Array.from({ length: 10 }, (_, c) => (
-            <rect key={`${r}-${c}`} x={8 + c * 24 - r * 4} y={4 + r * 10} width="18" height="7" rx="2" fill={(r + c) % 7 === 3 ? "#FF9FB0" : "#E9DDF5"} />
+            <rect key={`${r}-${c}`} x={8 + c * 24 - r * 4} y={4 + r * 10} width="18" height="7" rx="2" fill={(r + c) % 7 === 3 ? "#D6A6A0" : "#E9DDF5"} />
           )),
         )}
       </g>
