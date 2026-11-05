@@ -61,6 +61,38 @@ def _portaudio_ok() -> bool:
 def _rms(block) -> float:
     return float((block ** 2).mean() ** 0.5)
 
+def _input_stream(sd, callback):
+    """Open the default mic; resample native 44.1/48 kHz input for Whisper."""
+    import numpy as np
+    device = None
+    try:
+        default_input = sd.default.device[0]
+        if default_input is not None and int(default_input) >= 0:
+            device = int(default_input)
+            info = sd.query_devices(device, "input")
+            native_rate = int(round(info.get("default_samplerate") or SAMPLE_RATE))
+            try:
+                sd.check_input_settings(device=device, channels=1, dtype="float32", samplerate=SAMPLE_RATE)
+                capture_rate = SAMPLE_RATE
+            except Exception:
+                capture_rate = native_rate
+        else:
+            capture_rate = SAMPLE_RATE
+    except Exception:
+        capture_rate = SAMPLE_RATE
+    frames = max(1, int(round(capture_rate * 0.1)))
+    def adapted(data, _frames, timing, status):
+        mono = data[:, 0] if getattr(data, "ndim", 1) > 1 else data
+        if capture_rate != SAMPLE_RATE and len(mono):
+            count = max(1, int(round(len(mono) * SAMPLE_RATE / capture_rate)))
+            old = np.arange(len(mono), dtype=np.float32)
+            new = np.linspace(0, max(0, len(mono) - 1), count, dtype=np.float32)
+            mono = np.interp(new, old, mono).astype(np.float32)
+        callback(mono.reshape(-1, 1), len(mono), timing, status)
+    log.info("Opening microphone input device=%s at %s Hz (Whisper uses %s Hz)", device, capture_rate, SAMPLE_RATE)
+    return sd.InputStream(device=device, samplerate=capture_rate, channels=1, dtype="float32", blocksize=frames, callback=adapted)
+
+
 
 # ------------------------------------------------------------------ speech vs. silence
 
@@ -181,8 +213,7 @@ class Ears:
                     self._chunks.append(data.copy())
             self.level.feed(_rms(data))
 
-        self._stream = sd.InputStream(samplerate=SAMPLE_RATE, channels=1, dtype="float32",
-                                      blocksize=BLOCK, callback=on_audio)
+        self._stream = _input_stream(sd, on_audio)
         self._stream.start()
 
     def stop(self):
@@ -280,8 +311,7 @@ class WakeListener:
                 continue
             if stream is None:
                 try:
-                    stream = sd.InputStream(samplerate=SAMPLE_RATE, channels=1, dtype="float32", blocksize=BLOCK,
-                                            callback=lambda d, *_: blocks.put(d.copy()))
+                    stream = _input_stream(sd, lambda d, *_: blocks.put(d.copy()))
                     stream.start()
                 except Exception as exc:  # mic busy or missing: try again later
                     log.warning("wake word can't open the mic: %s", exc)
