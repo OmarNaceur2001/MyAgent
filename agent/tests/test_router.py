@@ -40,7 +40,9 @@ def test_route(text, name, args):
     ("open Google", "website.open", {"url": "https://www.google.com"}),
     ("go to YouTube", "website.open", {"url": "https://www.youtube.com"}),
     ("visit github.com", "website.open", {"url": "github.com"}),
-    ("open website chatgpt.com", "website.open", {"url": "chatgpt.com"}),
+    ("open website chatgpt.com", "website.open", {"url": "https://chatgpt.com"}),
+    ("navigate to www.example.com/docs", "website.open", {"url": "www.example.com/docs"}),
+    ("open https://example.com/docs?tab=readme", "website.open", {"url": "https://example.com/docs?tab=readme"}),
     ("play Bohemian Rhapsody", "music.play", {"query": "bohemian rhapsody"}),
     ("myagent, play some lofi hip hop on youtube", "music.play", {"query": "lofi hip hop"}),
     ("mimo, play some lofi hip hop on youtube", "music.play", {"query": "lofi hip hop"}),  # legacy wake word
@@ -50,6 +52,6 @@ def test_fun_routes(text, name, args):
     assert intent is not None and intent.name == name and intent.args == args
 
 
-@pytest.mark.parametrize("text", ["open chrome", "tell me a joke", "what's on my screen?"])
+@pytest.mark.parametrize("text", ["open chrome", "open file explorer", "tell me a joke", "what's on my screen?"])
 def test_unknown_goes_to_llm(text):
     assert route(text) is None
