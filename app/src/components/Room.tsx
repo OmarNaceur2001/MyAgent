@@ -1,8 +1,8 @@
 // MyAgent's home: a cozy lofi desk inside your computer.
 // Three moods of light, driven by the timer:
-//   day    → pink walls, sunset sky
-//   night  → focus sessions: purple dark, lamp on, stars out
-//   break  → golden hour
+//   day    → warm sand walls and a soft daylight sky
+//   night  → focus sessions: deep cocoa walls, lamp on, stars out
+//   break  → honey and terracotta daylight
 // Pure SVG + a few CSS animations (clouds, lights, steam). Cheap to draw.
 
 import "./room.css";
@@ -24,38 +24,38 @@ type Palette = {
 
 export const PALETTE: Record<Scene, Palette> = {
   day: {
-    wall: "#F7C8D6",
-    stripe: "#F2BACB",
-    sky: ["#9FB2FF", "#D9A8F0", "#FFB9A6"],
-    sun: "#FFE3A3",
-    desk: "#F6C2A8",
-    deskFront: "#E9A58C",
-    deskEdge: "#FBD6C2",
+    wall: "#E9DED1",
+    stripe: "#DED0BF",
+    sky: ["#BDCFD0", "#C7D7C8", "#E8C19F"],
+    sun: "#F0D398",
+    desk: "#D4AB88",
+    deskFront: "#B98667",
+    deskEdge: "#E8CDB6",
     rug: "#ADBDA5",
     lights: 0.25,
     lamp: 0,
   },
   night: {
-    wall: "#3B2C66",
-    stripe: "#35285D",
-    sky: ["#16133A", "#2E2563", "#5B3F8C"],
+    wall: "#39342E",
+    stripe: "#2F2B27",
+    sky: ["#252B29", "#414B40", "#66745C"],
     sun: "#F1DCA8",
-    desk: "#6B4C8F",
-    deskFront: "#553A78",
-    deskEdge: "#82619F",
-    rug: "#2A2350",
-    lights: 0.9,
+    desk: "#78604A",
+    deskFront: "#5C4939",
+    deskEdge: "#927459",
+    rug: "#3A3028",
+    lights: 0.82,
     lamp: 1,
   },
   break: {
-    wall: "#FBD2BC",
-    stripe: "#F7C4AA",
-    sky: ["#FFC98A", "#FFAF95", "#FF8FA0"],
-    sun: "#FFF0B0",
-    desk: "#F4B896",
-    deskFront: "#E39A7D",
-    deskEdge: "#FBD0B6",
-    rug: "#A9BA9D",
+    wall: "#EFE2D2",
+    stripe: "#E5D4C3",
+    sky: ["#EBCB91", "#DDA27E", "#BF826A"],
+    sun: "#F3DFAE",
+    desk: "#D2A17D",
+    deskFront: "#B77E61",
+    deskEdge: "#E7C7AC",
+    rug: "#91A188",
     lights: 0.45,
     lamp: 0,
   },
