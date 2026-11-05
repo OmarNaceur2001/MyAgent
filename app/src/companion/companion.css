@@ -62,7 +62,7 @@ body.transparent #root {
   font-family: var(--font-display);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  background: var(--plum);
+  background: var(--cocoa);
   color: var(--mint);
   border-radius: 999px;
   padding: 3px 12px;
@@ -78,7 +78,7 @@ body.transparent #root {
   place-items: center;
   border-radius: 50%;
   border: 0;
-  background: var(--plum);
+  background: var(--cocoa);
   color: var(--paper);
   cursor: pointer;
   opacity: 0;
