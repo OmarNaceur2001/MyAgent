@@ -198,17 +198,17 @@ export function Room({ scene, clock }: { scene: Scene; clock: string }) {
 
       {/* MyAgent's retro monitor */}
       <g transform="translate(526 318) scale(.8)">
-        <rect x="-4" y="4" width="196" height="150" rx="26" fill="#A792E0" {...S} />
+        <rect x="-4" y="4" width="196" height="150" rx="26" fill="#91A188" {...S} />
         <rect x="0" y="0" width="188" height="146" rx="24" fill="#ADBDA5" {...S} />
-        <rect x="18" y="16" width="152" height="104" rx="16" fill="#2A2350" stroke={INK} strokeWidth="4" />
+        <rect x="18" y="16" width="152" height="104" rx="16" fill="#3A3028" stroke={INK} strokeWidth="4" />
         <rect x="18" y="16" width="152" height="104" rx="16" fill="url(#room-sky)" opacity=".12" />
         <text x="94" y="70" textAnchor="middle" fontFamily="Fredoka, sans-serif" fontWeight="600" fontSize="38" fill="#A9BA9D" className="room-clock">
           {clock}
         </text>
         <path d="M84 92 h6 v-6 h6 v6 h6 v6 h-6 v6 h-6 v-6 h-6z" fill="#D6A6A0" />
         <circle cx="160" cy="132" r="5" fill="#A9BA9D" stroke={INK} strokeWidth="2.5" />
-        <rect x="30" y="128" width="40" height="7" rx="3.5" fill="#A792E0" />
-        <rect x="70" y="146" width="48" height="12" fill="#A792E0" {...S} strokeWidth={4} />
+        <rect x="30" y="128" width="40" height="7" rx="3.5" fill="#91A188" />
+        <rect x="70" y="146" width="48" height="12" fill="#91A188" {...S} strokeWidth={4} />
       </g>
 
       {/* keyboard */}
@@ -216,7 +216,7 @@ export function Room({ scene, clock }: { scene: Scene; clock: string }) {
         <path d="M0 0 H250 L262 26 H-12Z" fill="#FCF8F1" {...S} strokeWidth={4} />
         {Array.from({ length: 2 }, (_, r) =>
           Array.from({ length: 10 }, (_, c) => (
-            <rect key={`${r}-${c}`} x={8 + c * 24 - r * 4} y={4 + r * 10} width="18" height="7" rx="2" fill={(r + c) % 7 === 3 ? "#D6A6A0" : "#E9DDF5"} />
+            <rect key={`${r}-${c}`} x={8 + c * 24 - r * 4} y={4 + r * 10} width="18" height="7" rx="2" fill={(r + c) % 7 === 3 ? "#D6A6A0" : "#E6DCD0"} />
           )),
         )}
       </g>
