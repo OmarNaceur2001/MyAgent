@@ -39,7 +39,7 @@ function createMain() {
     minWidth: 960,
     minHeight: 640,
     title: "MyAgent",
-    backgroundColor: "#E6E2F8",
+    backgroundColor: "#FBF8F2",
     autoHideMenuBar: true,
     show: false,
     webPreferences: secure,

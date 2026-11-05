@@ -1,0 +1,51 @@
+name: CI
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [main, design/omar-character-refresh]
+  pull_request:
+    branches: [main]
+
+jobs:
+  agent-tests:
+    name: Python agent tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - name: Install test dependencies
+        run: python -m pip install -r agent/requirements.txt numpy
+      - name: Run tests
+        run: python -m pytest -q agent/tests
+        env:
+          PYTHONPATH: agent
+
+  app-build:
+    name: Electron and React build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - name: Install app dependencies
+        working-directory: app
+        run: npm ci
+      - name: Type-check
+        working-directory: app
+        run: npm run typecheck
+      - name: Report dependency advisories
+        working-directory: app
+        run: |
+          npm audit --json > npm-audit.json || true
+          node -e 'const a = require("./npm-audit.json"); console.log(JSON.stringify(a.metadata?.vulnerabilities ?? {}, null, 2)); for (const [name, v] of Object.entries(a.vulnerabilities ?? {})) console.log(name, v.severity, v.isDirect ? "direct" : "transitive", "fixAvailable:", JSON.stringify(v.fixAvailable));'
+      - name: Build
+        working-directory: app
+        run: npm run build

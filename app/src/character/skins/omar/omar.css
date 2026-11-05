@@ -1,0 +1,98 @@
+/* Omar's supplied 3D renders, with a small amount of motion so the existing
+   blink/gaze/beat contract stays lightweight and the image remains the source
+   of truth for his appearance. */
+.omar-character {
+  position: relative;
+  display: block;
+  width: var(--omar-size, 220px);
+  height: calc(var(--omar-size, 220px) * 1.55);
+  isolation: isolate;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+}
+.omar-character.pokeable { cursor: pointer; }
+.omar-render {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  pointer-events: none;
+  transform: translate(var(--omar-gaze-x, 0), var(--omar-gaze-y, 0));
+  transform-origin: 50% 92%;
+  filter: drop-shadow(0 7px 9px rgba(55, 43, 32, 0.16));
+  transition: transform 260ms ease-out, filter 300ms ease;
+}
+.omar-shadow {
+  position: absolute;
+  z-index: 0;
+  bottom: 2%;
+  left: 17%;
+  width: 66%;
+  height: 7%;
+  border-radius: 50%;
+  background: rgba(49, 40, 31, 0.2);
+  filter: blur(7px);
+}
+.omar-character[data-mood="idle"] .omar-render,
+.omar-character[data-mood="listening"] .omar-render,
+.omar-character[data-mood="speaking"] .omar-render {
+  animation: omar-breathe 4s ease-in-out infinite;
+}
+.omar-character[data-mood="thinking"] .omar-render,
+.omar-character[data-mood="confused"] .omar-render {
+  animation: omar-think 3.6s ease-in-out infinite;
+}
+.omar-character[data-mood="happy"] .omar-render,
+.omar-character[data-mood="excited"] .omar-render,
+.omar-character[data-mood="celebrating"] .omar-render {
+  animation: omar-cheer 1.8s ease-in-out infinite;
+}
+.omar-character[data-mood="working"] .omar-render,
+.omar-character[data-mood="focus"] .omar-render {
+  animation: omar-work 3.2s ease-in-out infinite;
+}
+.omar-character[data-mood="sleepy"] .omar-render { animation: omar-sleep 5s ease-in-out infinite; }
+
+.omar-character[data-beat="hop"] .omar-render,
+.omar-character[data-beat="startle"] .omar-render { animation: omar-hop 620ms ease-out; }
+.omar-character[data-beat="wave"] .omar-render,
+.omar-character[data-beat="giggle"] .omar-render { animation: omar-cheer 900ms ease-in-out; }
+.omar-character[data-beat="yawn"] .omar-render,
+.omar-character[data-beat="stretch"] .omar-render { animation: omar-sleep 1.5s ease-in-out; }
+.omar-character[data-beat="spin"] .omar-render { animation: omar-spin 900ms ease-in-out; }
+
+@keyframes omar-breathe {
+  0%, 100% { transform: translate(var(--omar-gaze-x, 0), var(--omar-gaze-y, 0)) translateY(0); }
+  50% { transform: translate(var(--omar-gaze-x, 0), var(--omar-gaze-y, 0)) translateY(-4px); }
+}
+@keyframes omar-think {
+  0%, 100% { transform: translate(var(--omar-gaze-x, 0), var(--omar-gaze-y, 0)) rotate(0); }
+  50% { transform: translate(var(--omar-gaze-x, 0), var(--omar-gaze-y, 0)) rotate(-1.3deg) translateY(-2px); }
+}
+@keyframes omar-cheer {
+  0%, 100% { transform: translate(var(--omar-gaze-x, 0), var(--omar-gaze-y, 0)) translateY(0) scale(1); }
+  35% { transform: translate(var(--omar-gaze-x, 0), var(--omar-gaze-y, 0)) translateY(-6px) scale(1.015); }
+}
+@keyframes omar-work {
+  0%, 100% { transform: translate(var(--omar-gaze-x, 0), var(--omar-gaze-y, 0)) translateY(0); }
+  50% { transform: translate(var(--omar-gaze-x, 0), var(--omar-gaze-y, 0)) translateY(2px); }
+}
+@keyframes omar-sleep {
+  0%, 100% { transform: translate(var(--omar-gaze-x, 0), var(--omar-gaze-y, 0)) rotate(0); }
+  50% { transform: translate(var(--omar-gaze-x, 0), var(--omar-gaze-y, 0)) rotate(1deg) translateY(2px); }
+}
+@keyframes omar-hop {
+  0%, 100% { transform: translateY(0) scale(1); }
+  40% { transform: translateY(-13px) scale(1.015); }
+}
+@keyframes omar-spin {
+  0%, 100% { transform: rotate(0); }
+  50% { transform: rotate(5deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .omar-render { animation: none !important; transition: none; }
+}

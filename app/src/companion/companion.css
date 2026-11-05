@@ -48,7 +48,7 @@ body.transparent #root {
   transform: translateX(-50%) rotate(45deg);
 }
 
-.c-body { filter: drop-shadow(0 6px 10px rgba(43, 39, 72, 0.25)); }
+.c-body { filter: drop-shadow(0 6px 10px rgba(48, 42, 36, 0.24)); }
 
 .c-footer {
   display: flex;
@@ -62,7 +62,7 @@ body.transparent #root {
   font-family: var(--font-display);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  background: var(--plum);
+  background: var(--cocoa);
   color: var(--mint);
   border-radius: 999px;
   padding: 3px 12px;
@@ -78,7 +78,7 @@ body.transparent #root {
   place-items: center;
   border-radius: 50%;
   border: 0;
-  background: var(--plum);
+  background: var(--cocoa);
   color: var(--paper);
   cursor: pointer;
   opacity: 0;
@@ -90,7 +90,7 @@ body.transparent #root {
 .companion .mic-btn.small {
   width: 28px;
   height: 28px;
-  box-shadow: 0 2px 0 #d97a8f;
+  box-shadow: 0 2px 0 #9E6249;
   opacity: 0;
   transition: opacity 0.2s;
 }

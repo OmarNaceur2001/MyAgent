@@ -60,19 +60,19 @@
 .ttt-cell {
   border: 0;
   border-radius: 18px;
-  background: var(--lilac-tint);
-  box-shadow: 0 4px 0 var(--lilac);
+  background: var(--sage-tint);
+  box-shadow: 0 4px 0 var(--sage);
   cursor: pointer;
   padding: 12%;
   transition: transform 0.1s, background 0.15s;
 }
-.ttt-cell:hover:not(:disabled) { background: #e4d9fb; transform: translateY(-2px); }
+.ttt-cell:hover:not(:disabled) { background: #DFE6DA; transform: translateY(-2px); }
 .ttt-cell:disabled { cursor: default; }
 .ttt-cell { min-height: 0; overflow: hidden; }
 .ttt-cell svg { display: block; width: 100%; height: 100%; fill: none; stroke-width: 6; stroke-linecap: round; animation: mark-in 0.25s ease-out; }
-.ttt-cell[data-mark="X"] svg { stroke: var(--plum); }
-.ttt-cell[data-mark="O"] svg { stroke: #e0788f; }
-.ttt-cell[data-win="true"] { background: var(--butter); box-shadow: 0 4px 0 #e9b358; }
+.ttt-cell[data-mark="X"] svg { stroke: var(--cocoa); }
+.ttt-cell[data-mark="O"] svg { stroke: #B97556; }
+.ttt-cell[data-win="true"] { background: var(--butter); box-shadow: 0 4px 0 #C99A55; }
 @keyframes mark-in { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
 /* ---- rock paper scissors ---- */
@@ -86,7 +86,7 @@
   gap: 2px;
   border: 0;
   border-radius: 20px;
-  background: var(--lilac-tint);
+  background: var(--sage-tint);
   font-weight: 700;
 }
 .rps-slot[data-result="win"] { background: var(--butter); }
@@ -103,14 +103,14 @@
   padding: 8px 4px 10px;
   border: 0;
   border-radius: 18px;
-  background: var(--pink-tint);
-  box-shadow: 0 4px 0 var(--pink-edge);
+  background: var(--blush-tint);
+  box-shadow: 0 4px 0 var(--blush-edge);
   font-weight: 800;
   cursor: pointer;
   transition: transform 0.08s;
 }
-.rps-choice:hover:not(:disabled) { background: #f7d2e1; }
-.rps-choice:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--pink-edge); }
+.rps-choice:hover:not(:disabled) { background: #EDE1D4; }
+.rps-choice:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--blush-edge); }
 .rps-choice:disabled { opacity: 0.5; cursor: default; }
 .rps-choice .rps-icon { width: 40px; height: 40px; }
 
@@ -150,8 +150,8 @@
   place-items: center;
 }
 .memory-back {
-  background: var(--plum) radial-gradient(circle at 50% 50%, var(--pink) 0 5px, transparent 6px);
-  border-color: var(--plum-edge);
+  background: var(--cocoa) radial-gradient(circle at 50% 50%, var(--blush) 0 5px, transparent 6px);
+  border-color: var(--cocoa-edge);
 }
 .memory-front { transform: rotateY(180deg); color: var(--ink); }
 .memory-card[data-matched="true"] .memory-front { opacity: 0.55; }
@@ -165,20 +165,20 @@
   align-items: center;
   padding: 10px 14px 10px 10px;
   text-align: left;
-  background: var(--lilac-tint);
+  background: var(--sage-tint);
   border: 0;
   border-radius: var(--r-md);
   cursor: pointer;
   transition: background 0.15s;
 }
-.game-pick:hover { background: #e4d9fb; }
-.game-pick[aria-pressed="true"] { background: var(--pink-tint); box-shadow: inset 0 0 0 2px var(--pink); }
+.game-pick:hover { background: #DFE6DA; }
+.game-pick[aria-pressed="true"] { background: var(--blush-tint); box-shadow: inset 0 0 0 2px var(--blush); }
 .game-pick-icon {
   width: 56px;
   height: 56px;
   border-radius: 16px;
-  background: var(--plum);
-  color: var(--pink);
+  background: var(--cocoa);
+  color: var(--blush);
   display: grid;
   place-items: center;
 }

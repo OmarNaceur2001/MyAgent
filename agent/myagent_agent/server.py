@@ -243,6 +243,8 @@ async def run_intent(intent: Intent, speak: bool) -> str | None:
         reply = random.choice([f"Hey {settings.user_name}!", f"Hi {settings.user_name}!",
                                f"{settings.user_name}! I was just thinking about you."] if not memory.messages
                               else ["I'm here.", "Yes?", "Mm-hm?", "Listening!"])
+    elif intent.name == "website.open":
+        reply = await toolbox.open_website({"url": a["url"]})
     elif intent.name == "music.play":
         result = await toolbox.play_youtube({"query": a["query"]})
         reply = random.choice(["Ooh, good choice!", "Coming right up!", "Let's dance!"]) if result.startswith("Playing") \
