@@ -49,7 +49,7 @@ export function OmarSkin({
       {shadow && <span className="omar-shadow" aria-hidden />}
       <img
         className="omar-render"
-        src={`/characters/omar/omar-${frame}.webp`}
+        src={`./characters/omar/omar-${frame}.webp`}
         alt=""
         draggable={false}
       />
