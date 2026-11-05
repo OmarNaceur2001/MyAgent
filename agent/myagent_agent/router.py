@@ -72,33 +72,41 @@ def route(raw: str) -> Intent | None:
     if not text:
         return None
 
-    # Open a website directly, without asking Ollama to infer the action.
-    # Recognised aliases keep common requests natural; explicit domains work too.
-    site_aliases = {
-        "google": "https://www.google.com",
-        "youtube": "https://www.youtube.com",
-        "github": "https://github.com",
-        "chatgpt": "https://chatgpt.com",
-        "gmail": "https://mail.google.com",
-        "google maps": "https://maps.google.com",
-        "stackoverflow": "https://stackoverflow.com",
-        "reddit": "https://www.reddit.com",
-        "wikipedia": "https://www.wikipedia.org",
-        "facebook": "https://www.facebook.com",
-        "instagram": "https://www.instagram.com",
-        "x": "https://x.com",
-        "twitter": "https://x.com",
-        "linkedin": "https://www.linkedin.com",
-    }
-    site_match = re.match(r"^(?:please )?(?:open|visit|go to|navigate to)\\s+(?:the )?(?:website )?(.+)$", text)
+    # Route clear website requests directly; leave app names such as "Chrome" to the LLM.
+    site_match = re.match(
+        r"^(?:please\s+)?(?:open|visit|go to|navigate to)\s+(?:the\s+)?(?:website\s+)?(.+)$",
+        text,
+    )
     if site_match:
-        target = site_match.group(1).strip().rstrip(" .!?")
-        normal = target.removeprefix("www.").lower()
-        if normal in site_aliases:
-            return Intent("website.open", {"url": site_aliases[normal]})
-        if re.fullmatch(r"[a-z0-9-]+(?:\\.[a-z0-9-]+)+(?:/[^\\s]*)?", target, re.IGNORECASE):
+        target = site_match.group(1).strip().rstrip(".,!?")
+        aliases = {
+            "google": "https://www.google.com",
+            "youtube": "https://www.youtube.com",
+            "github": "https://github.com",
+            "chatgpt": "https://chatgpt.com",
+            "gmail": "https://mail.google.com",
+            "google maps": "https://maps.google.com",
+            "stackoverflow": "https://stackoverflow.com",
+            "reddit": "https://www.reddit.com",
+            "wikipedia": "https://www.wikipedia.org",
+            "facebook": "https://www.facebook.com",
+            "instagram": "https://www.instagram.com",
+            "x": "https://x.com",
+            "twitter": "https://x.com",
+            "linkedin": "https://www.linkedin.com",
+        }
+        alias = target.removeprefix("www.").casefold()
+        if alias in aliases:
+            return Intent("website.open", {"url": aliases[alias]})
+        # Toolbox.safe_url performs the final http(s) and public-host safety check.
+        is_url = re.fullmatch(
+            r"(?:https?://)?(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}"
+            r"(?::\d{1,5})?(?:[/?#][^\s]*)?",
+            target,
+            re.IGNORECASE,
+        )
+        if is_url:
             return Intent("website.open", {"url": target})
-        # Do not guess arbitrary app names (e.g. "open Chrome") as websites.
 
     # wipe the short-term memory of this conversation
     if re.fullmatch(r"(let'?s )?(start over|start fresh|new conversation|forget (that|everything|what i said))", text):
