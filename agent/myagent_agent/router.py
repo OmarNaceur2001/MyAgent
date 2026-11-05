@@ -106,7 +106,8 @@ def route(raw: str) -> Intent | None:
             re.IGNORECASE,
         )
         if is_url:
-            return Intent("website.open", {"url": target})
+            normalized_url = target if re.match(r"^https?://", target, re.IGNORECASE) else f"https://{target}"
+            return Intent("website.open", {"url": normalized_url})
 
     # wipe the short-term memory of this conversation
     if re.fullmatch(r"(let'?s )?(start over|start fresh|new conversation|forget (that|everything|what i said))", text):
