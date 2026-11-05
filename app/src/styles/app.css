@@ -1,9 +1,9 @@
 /* ==========================================================================
    MyAgent app chrome. Everything OUTSIDE the room uses one small control system:
-     .btn-primary   plum keycap, cream text   (one main action per area)
+     .btn-primary   cocoa keycap, cream text   (one main action per area)
      .btn-secondary sage keycap, cocoa text
      .chip          soft sand pill            (light actions, suggestions)
-     .icon-btn      round icon button (plum / soft)
+     .icon-btn      round icon button (cocoa / soft)
    Keycap = a solid bottom edge that presses down on click, like MyAgent's world.
    ========================================================================== */
 
