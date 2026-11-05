@@ -53,6 +53,7 @@ Two windows open: the main MyAgent window and the small floating MyAgent.
 - **Talk:** just say **“Hey MyAgent”** (he perks up and listens), or **“Hey MyAgent, play lofi”** in one go.
   You can also press the mic, or **Ctrl+Shift+Space** from any app. He stops recording when you stop
   talking, answers out loud, then listens for your reply. Silence for a few seconds (or typing) ends it.
+  Say **“open Google”**, **“go to YouTube”**, or **“visit github.com”** to open a website directly.
 - **Stop:** **Esc**, click MyAgent while he talks, or say "stop".
 - **Settings:** Talk tab → *Voice and sound*: wake word, spoken replies, sound effects.
 - **Play:** "let's play tic-tac-toe", "rock paper scissors", "memory game", or the **Play** tab. Wins earn coins.
@@ -123,8 +124,9 @@ normal `http(s)` addresses; local addresses and `file://` links are refused.
 The character lives in `app/src/character/`. A skin only draws: it receives
 `mood`, `beat`, `gaze`, `blink` and renders them (see `types.ts`).
 
-- `skins/critter/`: the current MyAgent (big ears, glossy eyes, cable tail with a glowing plug)
-- `skins/myagent/`: the first pocket-computer design, kept as an alternative
+- `skins/omar/`: the active character skin, using the supplied 3D poses
+- `skins/critter/`: the original critter skin, kept as an alternative
+- `skins/myagent/`: the earlier pocket-computer design, kept as an alternative
 
 To switch or add a design, change one line in `character/index.ts`. Nothing else changes.
 His room (lofi desk, day / focus night / golden-hour break) is `app/src/components/Room.tsx`.
