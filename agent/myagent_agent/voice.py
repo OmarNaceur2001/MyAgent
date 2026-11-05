@@ -4,7 +4,7 @@ Everything runs offline on the CPU, so the GPU stays free for the LLM.
 
 Setup on your PC (once):
     pip install -r requirements-voice.txt
-    python -m piper.download_voices en_US-amy-medium --download-dir voices
+    python -m piper.download_voices en_US-ryan-high --download-dir voices
 Whisper models download themselves the first time (~150 MB base.en, ~75 MB tiny.en).
 
 How hearing works:
@@ -61,9 +61,11 @@ def _portaudio_ok() -> bool:
 def _rms(block) -> float:
     return float((block ** 2).mean() ** 0.5)
 
+
 def _input_stream(sd, callback):
     """Open the default mic; resample native 44.1/48 kHz input for Whisper."""
     import numpy as np
+
     device = None
     try:
         default_input = sd.default.device[0]
@@ -81,6 +83,7 @@ def _input_stream(sd, callback):
     except Exception:
         capture_rate = SAMPLE_RATE
     frames = max(1, int(round(capture_rate * 0.1)))
+
     def adapted(data, _frames, timing, status):
         mono = data[:, 0] if getattr(data, "ndim", 1) > 1 else data
         if capture_rate != SAMPLE_RATE and len(mono):
@@ -90,8 +93,14 @@ def _input_stream(sd, callback):
             mono = np.interp(new, old, mono).astype(np.float32)
         callback(mono.reshape(-1, 1), len(mono), timing, status)
     log.info("Opening microphone input device=%s at %s Hz (Whisper uses %s Hz)", device, capture_rate, SAMPLE_RATE)
-    return sd.InputStream(device=device, samplerate=capture_rate, channels=1, dtype="float32", blocksize=frames, callback=adapted)
-
+    return sd.InputStream(
+        device=device,
+        samplerate=capture_rate,
+        channels=1,
+        dtype="float32",
+        blocksize=frames,
+        callback=adapted,
+    )
 
 
 # ------------------------------------------------------------------ speech vs. silence
