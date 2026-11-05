@@ -37,6 +37,10 @@ def test_route(text, name, args):
     ("play rock paper scissors with me", "game.open", {"game": "rps"}),
     ("can we play the memory game", "game.open", {"game": "memory"}),
     ("I'm bored", "game.open", {"game": "tictactoe"}),
+    ("open Google", "website.open", {"url": "https://www.google.com"}),
+    ("go to YouTube", "website.open", {"url": "https://www.youtube.com"}),
+    ("visit github.com", "website.open", {"url": "github.com"}),
+    ("open website chatgpt.com", "website.open", {"url": "chatgpt.com"}),
     ("play Bohemian Rhapsody", "music.play", {"query": "bohemian rhapsody"}),
     ("myagent, play some lofi hip hop on youtube", "music.play", {"query": "lofi hip hop"}),
     ("mimo, play some lofi hip hop on youtube", "music.play", {"query": "lofi hip hop"}),  # legacy wake word
