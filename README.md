@@ -12,7 +12,7 @@ MyAgent/
 
 ## Run it (Windows)
 
-You need **Node 20+** and **Python 3.11+**.
+You need **Node 22+** and **Python 3.11+**.
 
 **1. Agent (first time only)**
 ```powershell
