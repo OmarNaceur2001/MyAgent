@@ -41,7 +41,7 @@ VOICES_DIR = Path(__file__).resolve().parent.parent / "voices"
 
 WHISPER_MODEL = os.environ.get("MYAGENT_WHISPER_MODEL", os.environ.get("MIMO_WHISPER_MODEL", "base.en"))  # "small.en" = better, slower
 WAKE_MODEL = os.environ.get("MYAGENT_WAKE_MODEL", os.environ.get("MIMO_WAKE_MODEL", "tiny.en"))
-PIPER_VOICE = os.environ.get("MYAGENT_PIPER_VOICE", os.environ.get("MIMO_PIPER_VOICE", "en_US-amy-medium"))
+PIPER_VOICE = os.environ.get("MYAGENT_PIPER_VOICE", os.environ.get("MIMO_PIPER_VOICE", "en_US-ryan-high"))
 MIC_THRESHOLD = float(os.environ.get("MYAGENT_MIC_THRESHOLD", os.environ.get("MIMO_MIC_THRESHOLD", "0.012")))  # raise if a noisy room wakes him
 
 
