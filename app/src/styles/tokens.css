@@ -11,29 +11,22 @@
   --ink-soft: #695B4F;
   --ink-faint: #897B6E;
   --sky: #EAE1D6;
-  --sky-deep: #DED1C1;
   --paper: #FBF8F2;
-  --paper-2: #F3ECE3;
-  --peri: #B9C6B0;
-  --peri-deep: #91A187;
-  --night: #302C28;
   --mint: #A9BA9D;
   --mint-deep: #5B7352;
   --coral: #C98A69;
-  --coral-deep: #9E6249;
   --butter: #E7BF78;
-  --pink: #D6A6A0;
+  --blush: #D6A6A0;
 
-  --plum: #40362D;
-  --plum-2: #58483B;
-  --plum-edge: #28221D;
-  --lilac: #BBC7B2;
-  --lilac-edge: #93A087;
-  --lilac-tint: #E9EEE5;
-  --pink-tint: #F2E5DE;
-  --pink-edge: #DFC9BB;
+  --cocoa: #40362D;
+  --cocoa-hover: #58483B;
+  --cocoa-edge: #28221D;
+  --sage: #BBC7B2;
+  --sage-edge: #93A087;
+  --sage-tint: #E9EEE5;
+  --blush-tint: #F2E5DE;
+  --blush-edge: #DFC9BB;
   --peach-tint: #F7E9D9;
-  --peach-edge: #E5C9AB;
   --line-soft: #DED1C3;
 
   --font-display: "Fredoka", "Nunito", system-ui, sans-serif;
@@ -43,8 +36,6 @@
   --fs-md: 16px;
   --fs-lg: 20px;
   --fs-xl: 28px;
-  --fs-2xl: 40px;
-  --fs-timer: 88px;
 
   --line: 3px solid var(--ink);
   --r-sm: 12px;
@@ -53,13 +44,6 @@
   --pop: 0 4px 0 var(--ink);
   --pop-sm: 0 3px 0 var(--ink);
 
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 24px;
-  --space-6: 32px;
-  --space-7: 48px;
 }
 
 * { box-sizing: border-box; }
