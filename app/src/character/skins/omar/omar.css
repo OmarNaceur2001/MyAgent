@@ -5,7 +5,7 @@
   position: relative;
   display: block;
   width: var(--omar-size, 220px);
-  height: calc(var(--omar-size, 220px) * 1.2);
+  height: calc(var(--omar-size, 220px) * 1.55);
   isolation: isolate;
   user-select: none;
   -webkit-user-select: none;
