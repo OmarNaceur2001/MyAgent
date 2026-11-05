@@ -276,7 +276,7 @@
   color: var(--ink);
 }
 .talkbar input::placeholder { color: var(--ink-faint); }
-.talkbar:focus-within { box-shadow: var(--pop), 0 0 0 4px rgba(201, 182, 242, 0.6); }
+.talkbar:focus-within { box-shadow: var(--pop), 0 0 0 4px rgba(169, 186, 157, 0.45); }
 .icon-btn.stop { background: #A9664D; box-shadow: 0 3px 0 #824C37; }
 
 /* ============ side panel ============ */
@@ -401,7 +401,7 @@ code {
 .cycles { display: flex; justify-content: center; gap: 10px; }
 .cycle { width: 14px; height: 14px; border-radius: 50%; background: var(--sage-tint); box-shadow: inset 0 0 0 2px var(--sage-edge); }
 .cycle.done { background: var(--mint); box-shadow: none; }
-.cycle.now { background: var(--blush); box-shadow: 0 0 0 4px rgba(255, 159, 176, 0.35); }
+.cycle.now { background: var(--blush); box-shadow: 0 0 0 4px rgba(201, 138, 105, 0.25); }
 .controls { display: flex; justify-content: center; align-items: center; gap: 10px; }
 
 /* talk */
@@ -521,7 +521,7 @@ code {
   height: 20px;
   border-radius: 50%;
   background: var(--paper);
-  box-shadow: 0 1px 2px rgba(42, 35, 64, 0.3);
+  box-shadow: 0 1px 2px rgba(48, 42, 36, 0.24);
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .toggle input:checked + .toggle-track { background: var(--cocoa); box-shadow: none; }
