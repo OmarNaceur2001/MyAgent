@@ -36,7 +36,7 @@ before `python run.py`. The model unloads after 2 idle minutes to keep your PC c
 ```powershell
 cd agent
 pip install -r requirements-voice.txt
-python -m piper.download_voices en_US-amy-medium --download-dir voices
+python -m piper.download_voices en_US-ryan-high --download-dir voices
 ```
 Whisper downloads its model (~150 MB) the first time you talk.
 
@@ -102,7 +102,7 @@ is running to see every mood side by side.
 | `MYAGENT_USER_NAME` | `Omar` | what MyAgent calls you |
 | `MYAGENT_KEEP_ALIVE` | `2m` | how long the model stays loaded when idle |
 | `MYAGENT_WHISPER_MODEL` | `base.en` | `small.en` is more accurate, slower |
-| `MYAGENT_PIPER_VOICE` | `en_US-amy-medium` | any Piper voice in `agent/voices` |
+| `MYAGENT_PIPER_VOICE` | `en_US-ryan-high` | any Piper voice in `agent/voices` |
 | `MYAGENT_WAKE_MODEL` | `tiny.en` | model that listens for “Hey MyAgent” (tiny = light on the CPU) |
 | `MYAGENT_MIC_THRESHOLD` | `0.012` | raise it (e.g. `0.02`) if background noise triggers him; lower if he misses you |
 
