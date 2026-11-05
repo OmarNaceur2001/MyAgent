@@ -1,8 +1,8 @@
 /* ==========================================================================
    MyAgent app chrome. Everything OUTSIDE the room uses one small control system:
      .btn-primary   plum keycap, cream text   (one main action per area)
-     .btn-secondary lilac keycap, plum text
-     .chip          soft pink pill            (light actions, suggestions)
+     .btn-secondary sage keycap, cocoa text
+     .chip          soft sand pill            (light actions, suggestions)
      .icon-btn      round icon button (plum / soft)
    Keycap = a solid bottom edge that presses down on click, like MyAgent's world.
    ========================================================================== */
@@ -37,14 +37,14 @@
 .btn-primary { background: var(--plum); color: var(--paper); box-shadow: 0 5px 0 var(--plum-edge); }
 .btn-primary:hover:not(:disabled) { background: var(--plum-2); }
 .btn-secondary { background: var(--lilac); color: var(--ink); box-shadow: 0 5px 0 var(--lilac-edge); }
-.btn-secondary:hover:not(:disabled) { background: #d6c7f6; }
+.btn-secondary:hover:not(:disabled) { background: #D9E1D3; }
 .btn-primary:active:not(:disabled),
 .btn-secondary:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 1px 0 var(--plum-edge); }
 .btn-secondary:active:not(:disabled) { box-shadow: 0 1px 0 var(--lilac-edge); }
 .btn-primary:disabled,
 .btn-secondary:disabled { opacity: 0.45; cursor: not-allowed; }
-.btn-danger { background: #c9586b; box-shadow: 0 5px 0 #8f3446; }
-.btn-danger:hover:not(:disabled) { background: #b84b5e; }
+.btn-danger { background: #B97556; box-shadow: 0 5px 0 #824C37; }
+.btn-danger:hover:not(:disabled) { background: #A9664D; }
 .btn-sm { padding: 9px 16px; font-size: var(--fs-md); border-radius: 14px; }
 
 .chip {
@@ -61,7 +61,7 @@
   cursor: pointer;
   transition: background 0.15s, transform 0.1s;
 }
-.chip:hover:not(:disabled) { background: #f7d2e1; }
+.chip:hover:not(:disabled) { background: #EDE1D4; }
 .chip:active:not(:disabled) { transform: scale(0.97); }
 .chip:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -95,15 +95,15 @@
   border-radius: 50%;
   background: var(--pink);
   color: var(--ink);
-  box-shadow: 0 4px 0 #d97a8f;
+  box-shadow: 0 4px 0 #A66D4E;
   cursor: pointer;
   transition: transform 0.08s;
 }
 .mic-btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #d97a8f; }
 .mic-btn[data-listening="true"] { animation: mic-pulse 1s ease-in-out infinite; }
 @keyframes mic-pulse {
-  0%, 100% { box-shadow: 0 4px 0 #d97a8f, 0 0 0 0 rgba(255, 159, 176, 0.7); }
-  50% { box-shadow: 0 4px 0 #d97a8f, 0 0 0 12px rgba(255, 159, 176, 0); }
+  0%, 100% { box-shadow: 0 4px 0 #d97a8f, 0 0 0 0 rgba(201, 138, 105, 0.36); }
+  50% { box-shadow: 0 4px 0 #d97a8f, 0 0 0 12px rgba(201, 138, 105, 0); }
 }
 .mic-btn:disabled { background: var(--lilac-tint); color: var(--ink-faint); box-shadow: none; cursor: not-allowed; }
 
@@ -128,8 +128,8 @@
   gap: 4px;
   margin-bottom: 16px;
 }
-.wordmark-dot { width: 10px; height: 10px; border-radius: 50%; background: #6b6290; }
-.wordmark-dot[data-on="true"] { background: var(--mint); box-shadow: 0 0 0 4px rgba(127, 230, 199, 0.25); }
+.wordmark-dot { width: 10px; height: 10px; border-radius: 50%; background: #8A7C6F; }
+.wordmark-dot[data-on="true"] { background: var(--mint); box-shadow: 0 0 0 4px rgba(169, 186, 157, 0.25); }
 
 .rail-item {
   position: relative;
@@ -141,7 +141,7 @@
   border: 0;
   border-radius: 20px;
   background: none;
-  color: #cfc4ea;
+  color: #D8CDBF;
   font-weight: 700;
   font-size: var(--fs-xs);
   cursor: pointer;
@@ -174,7 +174,7 @@
   height: 24px;
   border-radius: 50%;
   background: var(--butter);
-  box-shadow: inset -3px -3px 0 #e9b358, 0 0 0 2px var(--plum-edge);
+  box-shadow: inset -3px -3px 0 #C99A55, 0 0 0 2px var(--plum-edge);
 }
 
 /* ============ stage (the room) ============ */
@@ -382,7 +382,7 @@ code {
 /* live timer */
 .ring { position: relative; width: 240px; height: 240px; justify-self: center; }
 .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-.ring-track { fill: var(--plum); stroke: #3f3470; stroke-width: 18; }
+.ring-track { fill: var(--plum); stroke: #55483D; stroke-width: 18; }
 .ring-fill {
   fill: none;
   stroke: var(--mint);
@@ -427,7 +427,7 @@ code {
 .steps li[data-status="done"] { color: var(--mint); }
 .steps li[data-status="failed"] { color: var(--pink); }
 .steps li > span { min-width: 0; }
-.steps small { display: block; color: #a99fcc; overflow-wrap: anywhere; }
+.steps small { display: block; color: #C4B5A2; overflow-wrap: anywhere; }
 .task-card .ok { color: var(--mint); margin: 10px 0 0; }
 .task-card .bad { color: var(--pink); margin: 10px 0 0; }
 .spin { animation: spin 1s linear infinite; }
@@ -548,7 +548,7 @@ kbd {
   gap: 8px;
   padding: 6px 12px;
   border-radius: 999px;
-  background: rgba(42, 35, 80, 0.78);
+  background: rgba(55, 46, 38, 0.84);
   color: var(--paper);
   font-weight: 700;
   font-size: var(--fs-xs);
