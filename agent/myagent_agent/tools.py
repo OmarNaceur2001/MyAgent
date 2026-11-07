@@ -7,7 +7,7 @@ Deliberately small. MyAgent may ONLY:
   • start timers and games (inside MyAgent itself)
   • list/read files in explicitly granted folders; create/replace/delete files only
     in write-enabled folders and only after the user confirms the exact action
-There are still no shell, app-launch, OS-settings, credential-store, or whole-drive tools.
+There are still no shell, arbitrary app-launch, OS-settings, credential-store, or whole-drive tools. App launch is limited to the explicit allowlist.
 """
 
 from __future__ import annotations
