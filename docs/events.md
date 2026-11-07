@@ -99,9 +99,24 @@ The agent can:
 
 Whole-drive roots, common credential directories, common secret filenames, binary files,
 folders, and symbolic links that resolve outside an approved folder are refused. The agent
-has no shell, app-launch, operating-system settings, or credential-store tools. The local
+has no shell, arbitrary app-launch, operating-system settings, or credential-store tools. A separate `open_app` action can only launch an allowlisted app ID: Excel, Word, PowerPoint, Notepad, Calculator, or File Explorer. The local
 permissions file is stored at `agent/data/resource_permissions.json`.
 
 The Electron renderer never receives a general filesystem API. It can only ask Electron's
 main process to open the native folder picker; the selected path is then registered with
 the Python agent, which enforces the scope on every operation.
+
+
+## Desktop application launches
+
+The agent exposes one `open_app` tool with a fixed allowlist: `excel`, `word`,
+`powerpoint`, `notepad`, `calculator`, and `file_explorer`. The user must
+explicitly ask to open or launch one of these apps. Windows uses registered app
+paths or the OS application association; macOS uses `open -a`; Linux uses
+installed applications (LibreOffice for Office document apps). The tool accepts
+no executable paths, command arguments, scripts, or shell commands.
+
+The fast intent router handles phrases such as "open Excel app" before asking the
+language model to respond. Known website aliases are also matched with conservative
+typo correction against a fixed public-site list (for example, "facbook" → Facebook);
+arbitrary URLs still pass through the existing URL safety check.
