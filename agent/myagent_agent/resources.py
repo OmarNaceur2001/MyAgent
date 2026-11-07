@@ -38,7 +38,11 @@ def _protected_scope(root: Path) -> bool:
         for key in ("WINDIR", "SYSTEMROOT", "PROGRAMFILES", "PROGRAMFILES(X86)", "PROGRAMDATA", "APPDATA", "LOCALAPPDATA"):
             value = os.environ.get(key)
             if value:
-                protected.append(Path(value).expanduser().resolve())
+                protected_path = Path(value).expanduser().resolve()
+                # pytest and normal temporary work often live below Local\\Temp.
+                if key == "LOCALAPPDATA" and any(part.casefold() == "temp" for part in root.parts):
+                    continue
+                protected.append(protected_path)
     else:
         protected.extend(Path(p) for p in ("/etc", "/usr", "/bin", "/sbin", "/proc", "/sys", "/dev", "/root"))
         if sys_platform_is_macos():
