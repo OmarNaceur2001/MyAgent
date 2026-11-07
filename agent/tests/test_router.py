@@ -55,3 +55,36 @@ def test_fun_routes(text, name, args):
 @pytest.mark.parametrize("text", ["open chrome", "open file explorer", "tell me a joke", "what's on my screen?"])
 def test_unknown_goes_to_llm(text):
     assert route(text) is None
+
+
+@pytest.mark.parametrize("text,app", [
+    ("open Excel app", "excel"),
+    ("i want you to open Excel app", "excel"),
+    ("please open Microsoft Excel", "excel"),
+    ("launch Word", "word"),
+    ("open the PowerPoint application", "powerpoint"),
+    ("start Notepad", "notepad"),
+    ("open Calculator", "calculator"),
+    ("open File Explorer", "file_explorer"),
+])
+def test_open_desktop_app_routes_directly(text, app):
+    intent = route(text)
+    assert intent is not None
+    assert intent.name == "app.open"
+    assert intent.args == {"app": app}
+
+
+@pytest.mark.parametrize("text,url", [
+    ("open facbook", "https://www.facebook.com"),
+    ("open facebook", "https://www.facebook.com"),
+    ("go to instagarm", "https://www.instagram.com"),
+])
+def test_common_website_typos_route_to_known_sites(text, url):
+    intent = route(text)
+    assert intent is not None
+    assert intent.name == "website.open"
+    assert intent.args == {"url": url}
+
+
+def test_unknown_app_name_is_not_guessed():
+    assert route("open randomdesktopthing") is None
