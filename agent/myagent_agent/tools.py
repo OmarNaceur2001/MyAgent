@@ -21,6 +21,7 @@ from urllib.parse import quote_plus, urlparse
 import httpx
 
 from . import events
+from .resources import ResourcePermissions
 from .safety import SafetyError
 
 Handler = Callable[[dict], Awaitable[str]]
@@ -53,11 +54,13 @@ S = {"type": "string"}
 class Toolbox:
     def __init__(self, timers: Any = None, emit: Emit | None = None,
                  opener: Callable[[str], Any] | None = None,
-                 youtube: Callable[[str], Awaitable[tuple[str, str] | None]] | None = None):
+                 youtube: Callable[[str], Awaitable[tuple[str, str] | None]] | None = None,
+                 resources: ResourcePermissions | None = None):
         self.timers = timers
         self.emit = emit
         self._open = opener or webbrowser.open
         self._find_video = youtube or find_youtube_video
+        self.resources = resources
         self.tools: dict[str, Tool] = {t.name: t for t in self._build()}
 
     def schemas(self) -> list[dict]:
@@ -106,6 +109,42 @@ class Toolbox:
                 _obj({"focus_minutes": {"type": "number"}}, []),
                 self.start_pomodoro,
                 title=lambda a: "Start a Pomodoro",
+            ),
+
+            Tool(
+                "list_folder",
+                "List the immediate contents of a folder the user explicitly granted to MyAgent. Never scan recursively.",
+                _obj({"path": {**S, "description": "Absolute folder path inside a granted folder"}}, ["path"]),
+                self.list_folder,
+                title=lambda a: f"List folder {a.get('path', '')}",
+            ),
+            Tool(
+                "read_file",
+                "Read a UTF-8 text file inside a folder with read permission. Do not read credential or secret files.",
+                _obj({"path": {**S, "description": "Absolute path to a text file inside a granted folder"}}, ["path"]),
+                self.read_file,
+                title=lambda a: f"Read {a.get('path', '')}",
+            ),
+            Tool(
+                "write_file",
+                "Create or replace a UTF-8 text file inside a folder with write permission. Always explain the change and wait for confirmation.",
+                _obj({"path": S, "content": S, "replace": {"type": "boolean"}}, ["path", "content"]),
+                self.write_file,
+                risk="confirm",
+                confirm=lambda a: (
+                    f"Replace the contents of {a.get('path')}?"
+                    if a.get("replace") else f"Create the file {a.get('path')}?"
+                ),
+                title=lambda a: f"Write {a.get('path', '')}",
+            ),
+            Tool(
+                "delete_file",
+                "Delete one regular file inside a folder with write permission. Folders and symbolic links cannot be deleted.",
+                _obj({"path": S}, ["path"]),
+                self.delete_file,
+                risk="confirm",
+                confirm=lambda a: f"Delete the file {a.get('path')}? This cannot be undone.",
+                title=lambda a: f"Delete {a.get('path', '')}",
             ),
         ]
 
@@ -157,6 +196,28 @@ class Toolbox:
 
         await self.timers.start_pomodoro(PomodoroConfig(focus_min=float(a.get("focus_minutes") or 25)))
         return "Pomodoro started"
+
+
+    def _resource_manager(self) -> ResourcePermissions:
+        if self.resources is None:
+            raise SafetyError("Local folder access is not configured. Grant a folder in Talk → Local folder access.")
+        return self.resources
+
+    async def list_folder(self, a: dict) -> str:
+        return self._resource_manager().list_folder(str(a.get("path", "")))
+
+    async def read_file(self, a: dict) -> str:
+        return self._resource_manager().read_file(str(a.get("path", "")))
+
+    async def write_file(self, a: dict) -> str:
+        return self._resource_manager().write_file(
+            str(a.get("path", "")),
+            str(a.get("content", "")),
+            replace=bool(a.get("replace", False)),
+        )
+
+    async def delete_file(self, a: dict) -> str:
+        return self._resource_manager().delete_file(str(a.get("path", "")))
 
 
 def safe_url(raw: str) -> str:
