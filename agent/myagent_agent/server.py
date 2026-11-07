@@ -20,6 +20,7 @@ from .config import settings
 from .llm import OllamaLLM
 from .memory import ShortMemory
 from .prefs import Prefs
+from .resources import ResourcePermissions
 from .router import Intent, route
 from .safety import ActionLog, ConfirmationBroker
 from .store import Store
@@ -62,7 +63,8 @@ store = Store(db_file if (db_file.exists() or not (DATA_DIR / "mimo.db").exists(
 timers = TimerService(hub.broadcast, store)
 llm = OllamaLLM(settings.ollama_url, settings.model, settings.keep_alive)
 broker = ConfirmationBroker()
-toolbox = Toolbox(timers, emit=lambda e: emit(e))
+resource_permissions = ResourcePermissions(DATA_DIR / "resource_permissions.json")
+toolbox = Toolbox(timers, emit=lambda e: emit(e), resources=resource_permissions)
 
 
 async def emit(evt: dict) -> None:
@@ -86,6 +88,10 @@ voice.speak_replies = prefs.values["speak_replies"]
 
 def prefs_event() -> dict:
     return events.event("prefs", **prefs.values)
+
+
+def resource_permissions_event() -> dict:
+    return events.event("resource.permissions", grants=resource_permissions.list())
 
 
 async def features() -> dict[str, bool]:
@@ -124,6 +130,7 @@ async def ws_endpoint(ws: WebSocket) -> None:
     await ws.send_json(timers.state_event())
     await ws.send_json(events.event("stats", **store.stats()))
     await ws.send_json(prefs_event())
+    await ws.send_json(resource_permissions_event())
     await ws.send_json(events.status("working" if brain.busy else "idle"))
     try:
         while True:
@@ -156,6 +163,29 @@ async def handle(name: str, args: dict) -> None:
             await hub.broadcast(events.message(problem, tone="confused"))
     elif name == "voice.stop":
         await voice.stop_listening()
+    elif name == "resources.list":
+        await hub.broadcast(resource_permissions_event())
+    elif name == "resources.grant":
+        grant = resource_permissions.grant(
+            str(args.get("path", "")),
+            read=args.get("read", True),
+            write=args.get("write", False),
+        )
+        await hub.broadcast(resource_permissions_event())
+        await hub.broadcast(events.message(
+            f"Folder access granted: {grant['path']} ("
+            f"{'read' if grant['read'] else ''}"
+            f"{' and ' if grant['read'] and grant['write'] else ''}"
+            f"{'write' if grant['write'] else ''}).",
+            tone="happy",
+        ))
+    elif name == "resources.update":
+        path = str(args.get("path", ""))
+        resource_permissions.update(path, read=args.get("read"), write=args.get("write"))
+        await hub.broadcast(resource_permissions_event())
+    elif name == "resources.revoke":
+        resource_permissions.revoke(str(args.get("path", "")))
+        await hub.broadcast(resource_permissions_event())
     elif name == "prefs.set":
         key, value = str(args.get("key", "")), args.get("value")
         if not prefs.set(key, value):
