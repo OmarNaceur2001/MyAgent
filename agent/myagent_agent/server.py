@@ -22,7 +22,7 @@ from .memory import ShortMemory
 from .prefs import Prefs
 from .resources import ResourcePermissions
 from .router import Intent, route
-from .safety import ActionLog, ConfirmationBroker
+from .safety import ActionLog, ConfirmationBroker, SafetyError
 from .store import Store
 from .timer import PomodoroConfig, TimerService
 from .tools import Toolbox
@@ -252,6 +252,8 @@ def _did(intent: Intent) -> str:
     """What a quick command did, in brackets, so the LLM knows later."""
     a = intent.args
     return {"music.play": f"[played “{a.get('query')}” on YouTube]",
+            "website.open": f"[opened {a.get('url')}]",
+            "app.open": f"[opened {a.get('app')} application]",
             "game.open": f"[opened {GAME_NAMES.get(a.get('game'), 'a game')}]",
             "pomodoro.start": "[started a Pomodoro]",
             "timer.start": f"[started a {a.get('minutes')}-minute timer]"}.get(intent.name, "")
@@ -271,7 +273,16 @@ async def run_intent(intent: Intent, speak: bool) -> str | None:
                                f"{settings.user_name}! I was just thinking about you."] if not memory.messages
                               else ["I'm here.", "Yes?", "Mm-hm?", "Listening!"])
     elif intent.name == "website.open":
-        reply = await toolbox.open_website({"url": a["url"]})
+        try:
+            reply = await toolbox.open_website({"url": a["url"]})
+        except (SafetyError, OSError) as exc:
+            reply, tone = f"I couldn't open that website: {exc}", "confused"
+    elif intent.name == "app.open":
+        try:
+            reply = await toolbox.open_app({"app": a["app"]})
+        except (SafetyError, OSError) as exc:
+            label = str(a.get("app", "application")).replace("_", " ")
+            reply, tone = f"I couldn't open {label}: {exc}", "confused"
     elif intent.name == "music.play":
         result = await toolbox.play_youtube({"query": a["query"]})
         reply = random.choice(["Ooh, good choice!", "Coming right up!", "Let's dance!"]) if result.startswith("Playing") \
