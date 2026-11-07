@@ -540,7 +540,7 @@ class Voice:
         from . import events
 
         if not self.ears:
-            return "Voice isn't set up yet. See agent/voice.py for the two setup commands."
+            return "Voice input is not ready. Connect or enable a microphone, allow MyAgent/Python to use it in Windows microphone privacy settings, and complete the optional voice setup if it is not installed."
         if self.ears.recording:
             return None
         self.stop_speaking()
