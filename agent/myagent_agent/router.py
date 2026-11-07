@@ -120,7 +120,7 @@ def route(raw: str) -> Intent | None:
 
     # Route an explicit desktop-app launch before any general LLM reasoning.
     app_match = re.match(
-        r"^(?:please\s+)?(?:open|launch|start|run)\s+(?:the\s+)?(.+?)$",
+        r"^(?:(?:i want you to|can you|could you|please)\s+)?(?:open|launch|start|run)\s+(?:the\s+)?(.+?)$",
         text,
     )
     if app_match:
