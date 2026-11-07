@@ -72,6 +72,26 @@ class ActionLog:
         self.path = path
 
     def write(self, tool: str, args: dict, ok: bool, result: str) -> None:
-        entry = {"t": time.strftime("%Y-%m-%d %H:%M:%S"), "tool": tool, "args": args, "ok": ok, "result": result[:500]}
+        secret_keys = {"content", "password", "token", "access_token", "refresh_token", "api_key", "secret"}
+
+        def redact(value, key: str = ""):
+            if key.casefold() in secret_keys:
+                return "[redacted]"
+            if isinstance(value, dict):
+                return {k: redact(v, str(k)) for k, v in value.items()}
+            if isinstance(value, list):
+                return [redact(item) for item in value]
+            return value
+
+        safe_result = "[file content omitted from action log]" if tool == "read_file" else result[:500]
+        if tool == "write_file":
+            safe_result = "File operation completed; written text omitted from action log."
+        entry = {
+            "t": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "tool": tool,
+            "args": redact(args),
+            "ok": ok,
+            "result": safe_result,
+        }
         with self.path.open("a", encoding="utf-8") as f:
             f.write(json.dumps(entry, ensure_ascii=False) + "\n")
