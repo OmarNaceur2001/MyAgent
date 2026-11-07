@@ -415,3 +415,39 @@ def test_input_stream_gives_clear_error_when_no_microphone_exists():
 
     with pytest.raises(RuntimeError, match="No microphone/input device"):
         _input_stream(FakeSoundDevice, lambda *_: None)
+
+def test_ears_can_retry_after_microphone_start_fails(monkeypatch):
+    import sys
+    import types
+
+    attempts = []
+
+    class FakeStream:
+        def __init__(self, **_kwargs):
+            self.started = False
+        def start(self):
+            attempts.append("start")
+            if len(attempts) == 1:
+                raise OSError("device disconnected")
+            self.started = True
+        def stop(self):
+            self.started = False
+        def close(self):
+            pass
+
+    fake_sd = types.SimpleNamespace(
+        default=types.SimpleNamespace(device=(-1, -1)),
+        query_devices=lambda: [{"name": "USB microphone", "max_input_channels": 1, "default_samplerate": 48000}],
+        check_input_settings=lambda **_kwargs: None,
+        InputStream=lambda **kwargs: FakeStream(**kwargs),
+    )
+    monkeypatch.setitem(sys.modules, "sounddevice", fake_sd)
+
+    ears = voice_mod.Ears()
+    with pytest.raises(OSError, match="device disconnected"):
+        ears.start()
+    assert ears.recording is False
+
+    ears.start()
+    assert ears.recording is True
+    ears.stop()
