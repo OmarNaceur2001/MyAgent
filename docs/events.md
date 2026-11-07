@@ -93,7 +93,7 @@ write access can be changed independently, and every grant can be revoked.
 
 The agent can:
 - List one explicitly requested folder (one level only; no recursive drive scan).
-- Read UTF-8 text files up to 200 KB in a read-enabled folder.
+- Read UTF-8 text files up to 64 KB in a read-enabled folder.
 - Create or replace UTF-8 text files up to 1 MB in a write-enabled folder, after confirmation.
 - Delete a regular file in a write-enabled folder, after confirmation.
 
