@@ -8,6 +8,7 @@ recognise returns None and will go to the LLM planner (not built yet).
 from __future__ import annotations
 
 import re
+from difflib import SequenceMatcher
 from dataclasses import dataclass, field
 
 WORD_NUMBERS = {
@@ -48,6 +49,51 @@ def parse_minutes(text: str) -> float | None:
     return total if found else None
 
 
+APP_ALIASES = {
+    "excel": "excel", "microsoft excel": "excel", "excel app": "excel", "excel application": "excel",
+    "word": "word", "microsoft word": "word", "word app": "word",
+    "powerpoint": "powerpoint", "power point": "powerpoint", "microsoft powerpoint": "powerpoint",
+    "notepad": "notepad", "notes": "notepad",
+    "calculator": "calculator", "calc": "calculator",
+    "file explorer": "file_explorer", "windows explorer": "file_explorer", "explorer": "file_explorer",
+}
+
+SITE_ALIASES = {
+    "facebook": "https://www.facebook.com",
+    "instagram": "https://www.instagram.com",
+    "google": "https://www.google.com",
+    "youtube": "https://www.youtube.com",
+    "github": "https://github.com",
+    "chatgpt": "https://chatgpt.com",
+    "gmail": "https://mail.google.com",
+    "linkedin": "https://www.linkedin.com",
+    "reddit": "https://www.reddit.com",
+    "wikipedia": "https://www.wikipedia.org",
+    "stackoverflow": "https://stackoverflow.com",
+    "twitter": "https://x.com",
+    "tiktok": "https://www.tiktok.com",
+    "amazon": "https://www.amazon.com",
+}
+
+
+def _closest_alias(target: str, aliases: dict[str, str]) -> str | None:
+    """Correct a short, single-name typo only when the match is unambiguous."""
+    value = target.strip().casefold()
+    if value in aliases:
+        return aliases[value]
+    if not value or len(value.split()) > 2 or len(value) < 4:
+        return None
+    ranked = sorted(
+        ((SequenceMatcher(None, value, key).ratio(), result) for key, result in aliases.items()),
+        reverse=True,
+    )
+    if not ranked or ranked[0][0] < 0.82:
+        return None
+    if len(ranked) > 1 and ranked[0][0] - ranked[1][0] < 0.06 and ranked[0][1] != ranked[1][1]:
+        return None
+    return ranked[0][1]
+
+
 GAME_WORDS = {
     "tictactoe": r"tic[\s-]?tac[\s-]?toe|noughts and crosses|x and o",
     "rps": r"rock[\s,-]*paper[\s,-]*scissors?",
@@ -72,33 +118,28 @@ def route(raw: str) -> Intent | None:
     if not text:
         return None
 
-    # Route clear website requests directly; leave app names such as "Chrome" to the LLM.
+    # Route an explicit desktop-app launch before any general LLM reasoning.
+    app_match = re.match(
+        r"^(?:please\s+)?(?:open|launch|start|run)\s+(?:the\s+)?(.+?)$",
+        text,
+    )
+    if app_match:
+        app_target = re.sub(r"\s+(?:desktop\s+)?(?:app|application)$", "", app_match.group(1)).strip()
+        app_id = APP_ALIASES.get(app_target)
+        if app_id:
+            return Intent("app.open", {"app": app_id})
+
+    # Resolve website aliases and common typos only against this fixed allowlist.
     site_match = re.match(
         r"^(?:please\s+)?(?:open|visit|go to|navigate to)\s+(?:the\s+)?(?:website\s+)?(.+)$",
         text,
     )
     if site_match:
         target = site_match.group(1).strip().rstrip(".,!?")
-        aliases = {
-            "google": "https://www.google.com",
-            "youtube": "https://www.youtube.com",
-            "github": "https://github.com",
-            "chatgpt": "https://chatgpt.com",
-            "gmail": "https://mail.google.com",
-            "google maps": "https://maps.google.com",
-            "stackoverflow": "https://stackoverflow.com",
-            "reddit": "https://www.reddit.com",
-            "wikipedia": "https://www.wikipedia.org",
-            "facebook": "https://www.facebook.com",
-            "instagram": "https://www.instagram.com",
-            "x": "https://x.com",
-            "twitter": "https://x.com",
-            "linkedin": "https://www.linkedin.com",
-        }
         alias = target.removeprefix("www.").casefold()
-        if alias in aliases:
-            return Intent("website.open", {"url": aliases[alias]})
-        # Toolbox.safe_url performs the final http(s) and public-host safety check.
+        site_url = _closest_alias(alias, SITE_ALIASES)
+        if site_url:
+            return Intent("website.open", {"url": site_url})
         is_url = re.fullmatch(
             r"(?:https?://)?(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}"
             r"(?::\d{1,5})?(?:[/?#][^\s]*)?",
