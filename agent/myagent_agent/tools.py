@@ -5,8 +5,9 @@ Deliberately small. MyAgent may ONLY:
   • open a website
   • play something on YouTube
   • start timers and games (inside MyAgent itself)
-There are no file, app or system tools at all, so the LLM cannot touch
-files or settings even by mistake: a tool that doesn't exist can't be misused.
+  • list/read files in explicitly granted folders; create/replace/delete files only
+    in write-enabled folders and only after the user confirms the exact action
+There are still no shell, app-launch, OS-settings, credential-store, or whole-drive tools.
 """
 
 from __future__ import annotations
@@ -213,7 +214,7 @@ class Toolbox:
         return self._resource_manager().write_file(
             str(a.get("path", "")),
             str(a.get("content", "")),
-            replace=bool(a.get("replace", False)),
+            replace=a.get("replace") is True,
         )
 
     async def delete_file(self, a: dict) -> str:
