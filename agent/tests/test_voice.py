@@ -352,7 +352,16 @@ def test_wake_listener_loop_with_fake_mic(monkeypatch):
         def close(self):
             pass
 
-    monkeypatch.setitem(sys.modules, "sounddevice", types.SimpleNamespace(InputStream=FakeStream))
+    monkeypatch.setitem(
+        sys.modules,
+        "sounddevice",
+        types.SimpleNamespace(
+            default=types.SimpleNamespace(device=(-1, -1)),
+            query_devices=lambda: [{"name": "fake mic", "max_input_channels": 1, "default_samplerate": 16000}],
+            check_input_settings=lambda **_kwargs: None,
+            InputStream=FakeStream,
+        ),
+    )
     heard, woke = [], threading.Event()
 
     def transcribe(audio):
