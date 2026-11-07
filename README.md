@@ -120,10 +120,14 @@ The default Whisper model is English-only (`base.en`). For best results, speak c
 Try direct commands such as:
 
 - “Open Google.”
+- “Open Facebook.” MyAgent can correct common typos such as “open facbook.”
 - “Go to YouTube.”
 - “Visit github.com.”
+- “Open Excel app.”
+- “I want you to open Word.”
+- “Launch Calculator.”
 
-You can also ask MyAgent to search the web or play a music query on YouTube. Website requests open in your default browser.
+MyAgent routes supported app-launch requests directly instead of handing them to general chat. Website requests open in your default browser.
 
 ### Other features
 
@@ -144,6 +148,7 @@ You can also ask MyAgent to search the web or play a music query on YouTube. Web
 | Fast command routing for supported requests | Available |
 | Ollama chat and tool-calling agent | Available when Ollama is running |
 | Web search, website opening, and YouTube playback | Available |
+| Launching allowlisted desktop apps (Excel, Word, PowerPoint, Notepad, Calculator, File Explorer) | Available when installed |
 | Tic-tac-toe, rock-paper-scissors, and memory game | Available |
 | Wake word, push-to-talk, speech recognition, and spoken replies | Available after optional voice setup |
 | Reminders and to-do list | Planned |
@@ -207,7 +212,7 @@ MyAgent's agent uses a limited set of tools: web search, opening public websites
 
 Local-file access is disabled until you choose a folder under **Talk → Local folder access**. Each folder has independent Read and Write permissions; new grants are read-only. MyAgent can list one folder at a time and read UTF-8 text files. Create, replace, and delete operations are available only inside write-enabled folders and always require a separate confirmation. Whole drives, operating-system/application-data folders, common credential directories, secret files, network shares, and paths outside granted folders are refused. The agent does not scan folders recursively.
 
-MyAgent does not provide shell execution, general app launching, operating-system settings control, or credential-store access. Website destinations are restricted by the agent's URL safety checks; local addresses and `file://` URLs are not permitted.
+MyAgent does not provide shell execution, arbitrary app launching, operating-system settings control, or credential-store access. Desktop launching is restricted to the explicit allowlist: Excel, Word, PowerPoint, Notepad, Calculator, and File Explorer. Website destinations are restricted by the agent's URL safety checks; local addresses and `file://` URLs are not permitted.
 
 The React interface displays state and sends commands to the local agent. The Electron main process provides only a native folder picker; the Python agent validates and performs every supported file operation.
 
