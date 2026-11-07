@@ -129,6 +129,7 @@ You can also ask MyAgent to search the web or play a music query on YouTube. Web
 
 - **Play:** start tic-tac-toe, rock-paper-scissors, or the memory game. You can also open the **Play** tab.
 - **Focus:** use the Pomodoro timer and breaks.
+- **Local folder access:** Talk → Local folder access → Choose a folder. New grants are read-only; enable Write only for folders where you want MyAgent to create or change files.
 - **Floating companion:** drag MyAgent to move him, double-click him to open the main window, or right-click for the companion menu.
 - **Window behavior:** closing the main window hides it; the floating companion stays available. Use the right-click menu to quit MyAgent completely.
 
@@ -202,11 +203,13 @@ Agent action history is written to `agent/data/actions.log`. Local application d
 
 ## Safety and tool boundaries
 
-MyAgent's agent is designed to use a limited set of tools: web search, opening public websites, YouTube playback, games, and timers. It does not provide general file, folder, shell, or operating-system control.
+MyAgent's agent uses a limited set of tools: web search, opening public websites, YouTube playback, games, timers, and scoped local-file operations.
 
-Website destinations are restricted by the agent's URL safety checks. Local addresses and `file://` URLs are not permitted.
+Local-file access is disabled until you choose a folder under **Talk → Local folder access**. Each folder has independent Read and Write permissions; new grants are read-only. MyAgent can list one folder at a time and read UTF-8 text files. Create, replace, and delete operations are available only inside write-enabled folders and always require a separate confirmation. Whole drives, operating-system/application-data folders, common credential directories, secret files, network shares, and paths outside granted folders are refused. The agent does not scan folders recursively.
 
-The React interface displays state and sends commands to the local agent. The Python agent is responsible for validating and performing supported actions.
+MyAgent does not provide shell execution, general app launching, operating-system settings control, or credential-store access. Website destinations are restricted by the agent's URL safety checks; local addresses and `file://` URLs are not permitted.
+
+The React interface displays state and sends commands to the local agent. The Electron main process provides only a native folder picker; the Python agent validates and performs every supported file operation.
 
 ## Project structure and character design
 
@@ -222,8 +225,8 @@ The room and its day, focus-night, and break scenes are defined in `app/src/comp
 
 ## Design and development principles
 
-1. **Limited authority:** MyAgent can only perform actions exposed through the agent's approved tools.
-2. **Separation of concerns:** the UI displays state and sends commands; the Python agent validates and performs actions.
+1. **Limited authority:** MyAgent can only perform actions exposed through the agent's approved tools and explicit folder grants.
+2. **Separation of concerns:** the UI displays state and sends commands; Electron exposes a folder picker, while the Python agent validates and performs file actions.
 3. **Event-driven character behavior:** the character's mood reflects application events.
 4. **Honest capabilities:** unfinished features are identified as planned rather than presented as working.
 5. **Lightweight operation:** character motion uses CSS/SVG, and AI and voice models load locally as needed.
