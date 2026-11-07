@@ -555,3 +555,75 @@ kbd {
 }
 .wake-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blush); animation: wake-breathe 2.4s ease-in-out infinite; }
 @keyframes wake-breathe { 0%, 100% { opacity: 0.4; transform: scale(0.85); } 50% { opacity: 1; transform: scale(1.15); } }
+
+
+/* ============ scoped local resource permissions ============ */
+.resource-settings {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--r-md);
+  background: var(--paper-2, #F3ECE3);
+  border: 2px solid var(--line-soft);
+}
+.resource-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.resource-heading > svg { flex: none; color: var(--mint-deep); }
+.resource-heading .sub { margin: 0; }
+.resource-description,
+.resource-empty,
+.resource-footnote,
+.resource-notice {
+  margin: 4px 0 0;
+  color: var(--ink-soft);
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+  font-weight: 600;
+}
+.resource-add { justify-self: start; }
+.resource-empty { padding: 8px 0; }
+.resource-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.resource-item {
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-radius: var(--r-sm);
+  background: var(--paper);
+  border: 1px solid var(--line-soft);
+}
+.resource-path {
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font: 700 11px/1.5 var(--font-body);
+  color: var(--ink);
+}
+.resource-permissions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+}
+.resource-permissions label { display: inline-flex; align-items: center; gap: 5px; }
+.resource-permissions input { accent-color: var(--mint-deep); }
+.resource-revoke {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  background: transparent;
+  color: var(--coral-deep, #9E6249);
+  font: 700 var(--fs-xs) var(--font-body);
+  cursor: pointer;
+}
+.resource-footnote { border-top: 1px solid var(--line-soft); padding-top: 8px; }
+.resource-notice { color: var(--coral-deep, #9E6249); }
+.resource-refresh { justify-self: start; padding: 6px 10px; font-size: var(--fs-xs); }

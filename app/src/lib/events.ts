@@ -58,12 +58,14 @@ export type AgentEvent =
   | { type: "game.open"; payload: { game: GameId } }
   | { type: "agent.wake"; payload: Record<string, never> }
   | { type: "prefs"; payload: Prefs }
+  | { type: "resource.permissions"; payload: { grants: ResourceGrant[] } }
   | { type: "music.playing"; payload: { title: string; query: string } }
   | { type: "error"; payload: { message: string } };
 
 export type GameId = "tictactoe" | "rps" | "memory";
 
 export type Prefs = { wake_word: boolean; speak_replies: boolean };
+export type ResourceGrant = { path: string; read: boolean; write: boolean };
 
 export type CommandName =
   | "say"
@@ -78,5 +80,9 @@ export type CommandName =
   | "voice.hush"
   | "game.result"
   | "prefs.set"
+  | "resources.list"
+  | "resources.grant"
+  | "resources.update"
+  | "resources.revoke"
   | "confirm.reply"
   | "agent.cancel";

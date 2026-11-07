@@ -62,26 +62,51 @@ def _rms(block) -> float:
     return float((block ** 2).mean() ** 0.5)
 
 
+def _available_input_devices(sd) -> list[tuple[int, dict]]:
+    """Return real input-capable PortAudio devices; -1 means no default device."""
+    try:
+        devices = sd.query_devices()
+    except Exception as exc:
+        raise RuntimeError(f"Could not enumerate microphone devices: {exc}") from exc
+    return [
+        (index, dict(info))
+        for index, info in enumerate(devices)
+        if int(info.get("max_input_channels") or 0) > 0
+    ]
+
+
+def _input_device_available() -> bool:
+    try:
+        import sounddevice as sd
+        return bool(_available_input_devices(sd))
+    except (ImportError, OSError, RuntimeError, ValueError):
+        return False
+
+
 def _input_stream(sd, callback):
-    """Open the default mic; resample native 44.1/48 kHz input for Whisper."""
+    """Open a real input-capable mic and resample its native rate for Whisper."""
     import numpy as np
 
-    device = None
+    inputs = _available_input_devices(sd)
+    if not inputs:
+        raise RuntimeError("No microphone/input device is available. Connect or enable a microphone and check Windows microphone privacy settings.")
+
+    default_input = None
     try:
-        default_input = sd.default.device[0]
-        if default_input is not None and int(default_input) >= 0:
-            device = int(default_input)
-            info = sd.query_devices(device, "input")
-            native_rate = int(round(info.get("default_samplerate") or SAMPLE_RATE))
-            try:
-                sd.check_input_settings(device=device, channels=1, dtype="float32", samplerate=SAMPLE_RATE)
-                capture_rate = SAMPLE_RATE
-            except Exception:
-                capture_rate = native_rate
-        else:
-            capture_rate = SAMPLE_RATE
-    except Exception:
+        raw_default = sd.default.device[0]
+        if raw_default is not None and int(raw_default) >= 0:
+            default_input = int(raw_default)
+    except (AttributeError, IndexError, TypeError, ValueError):
+        pass
+
+    device_info = next(((idx, info) for idx, info in inputs if idx == default_input), inputs[0])
+    device, info = device_info
+    native_rate = int(round(info.get("default_samplerate") or SAMPLE_RATE))
+    try:
+        sd.check_input_settings(device=device, channels=1, dtype="float32", samplerate=SAMPLE_RATE)
         capture_rate = SAMPLE_RATE
+    except Exception:
+        capture_rate = native_rate
     frames = max(1, int(round(capture_rate * 0.1)))
 
     def adapted(data, _frames, timing, status):
@@ -202,7 +227,7 @@ class Ears:
 
     @staticmethod
     def available() -> bool:
-        return _has("faster_whisper") and _portaudio_ok()
+        return _has("faster_whisper") and _portaudio_ok() and _input_device_available()
 
     @property
     def recording(self) -> bool:
@@ -222,8 +247,17 @@ class Ears:
                     self._chunks.append(data.copy())
             self.level.feed(_rms(data))
 
-        self._stream = _input_stream(sd, on_audio)
-        self._stream.start()
+        stream = _input_stream(sd, on_audio)
+        try:
+            stream.start()
+        except Exception:
+            try:
+                stream.close()
+            except Exception:
+                pass
+            self._stream = None
+            raise
+        self._stream = stream
 
     def stop(self):
         """Stop recording and return the audio as a 1-D float32 array (or None)."""
@@ -323,6 +357,11 @@ class WakeListener:
                     stream = _input_stream(sd, lambda d, *_: blocks.put(d.copy()))
                     stream.start()
                 except Exception as exc:  # mic busy or missing: try again later
+                    if stream is not None:
+                        try:
+                            stream.close()
+                        except Exception:
+                            pass
                     log.warning("wake word can't open the mic: %s", exc)
                     stream = None
                     time.sleep(3)
@@ -515,7 +554,7 @@ class Voice:
         from . import events
 
         if not self.ears:
-            return "Voice isn't set up yet. See agent/voice.py for the two setup commands."
+            return "Voice input is not ready. Connect or enable a microphone, allow MyAgent/Python to use it in Windows microphone privacy settings, and complete the optional voice setup if it is not installed."
         if self.ears.recording:
             return None
         self.stop_speaking()

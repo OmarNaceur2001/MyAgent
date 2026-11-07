@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { BEAT_MS, type Beat, type BeatCue, type Mood } from "../character";
 import { agent } from "./agent";
-import type { AgentEvent, AgentState, Features, GameId, PlanStep, Prefs, StepStatus, Stats, Timer, Tone } from "./events";
+import type { AgentEvent, AgentState, Features, GameId, PlanStep, Prefs, StepStatus, Stats, Timer, Tone, ResourceGrant } from "./events";
 import { sfx } from "./sfx";
 import { greetingFor, pick, type Situation } from "./personality";
 
@@ -28,6 +28,7 @@ type State = {
   confirm: { request_id: string; action: string; details: string } | null;
   game: GameId | null;
   prefs: Prefs | null;
+  resourceGrants: ResourceGrant[];
   music: { title: string; until: number } | null;
   lastActivity: number;
   now: number;
@@ -51,6 +52,7 @@ export const useMyAgent = create<State>(() => ({
   confirm: null,
   game: null,
   prefs: null,
+  resourceGrants: [],
   music: null,
   lastActivity: Date.now(),
   now: Date.now(),
@@ -97,6 +99,9 @@ function apply(e: AgentEvent) {
       break;
     case "prefs":
       set({ prefs: e.payload });
+      break;
+    case "resource.permissions":
+      set({ resourceGrants: e.payload.grants });
       break;
     case "agent.transcript":
       if (e.payload.final) addLine({ from: "you", text: e.payload.text });

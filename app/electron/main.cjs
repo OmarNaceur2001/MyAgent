@@ -1,7 +1,7 @@
 // Electron main process: creates the two windows and (optionally) starts the agent.
 // It does NOT do any computer control itself: that is the Python agent's job.
 
-const { app, BrowserWindow, globalShortcut, ipcMain, Menu, screen } = require("electron");
+const { app, BrowserWindow, dialog, globalShortcut, ipcMain, Menu, screen } = require("electron");
 const { spawn } = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -98,6 +98,17 @@ function openMain() {
 // ---------- IPC (window controls only) ----------
 
 ipcMain.on("myagent:open-main", openMain);
+
+// Native folder selection is the only way the UI can request a new local scope.
+// It returns one directory path; it never grants access by itself.
+ipcMain.handle("myagent:select-folder", async (event) => {
+  if (!mainWin || event.sender !== mainWin.webContents) return null;
+  const result = await dialog.showOpenDialog(mainWin, {
+    title: "Choose a folder MyAgent may access",
+    properties: ["openDirectory", "createDirectory"],
+  });
+  return result.canceled ? null : (result.filePaths[0] ?? null);
+});
 ipcMain.on("myagent:companion-hover", (_e, hovering) => {
   companionWin?.setIgnoreMouseEvents(!hovering, { forward: true });
 });

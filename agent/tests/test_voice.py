@@ -68,8 +68,13 @@ def test_input_stream_resamples_unsupported_native_rate():
         default = SimpleNamespace(device=(2, -1))
 
         @staticmethod
-        def query_devices(device, kind):
-            assert (device, kind) == (2, "input")
+        def query_devices(device=None, kind=None):
+            if device is None:
+                return [
+                    {"name": "default output", "max_input_channels": 0, "default_samplerate": 48000},
+                    {"name": "USB microphone", "max_input_channels": 1, "default_samplerate": 48000},
+                ]
+            assert (device, kind) == (1, "input")
             return {"default_samplerate": 48000}
 
         @staticmethod
@@ -84,7 +89,7 @@ def test_input_stream_resamples_unsupported_native_rate():
     received = []
     _input_stream(FakeSoundDevice, lambda data, *_: received.append(data))
 
-    assert captured["device"] == 2
+    assert captured["device"] == 1
     assert captured["samplerate"] == 48000
     assert captured["blocksize"] == 4800
 
@@ -127,7 +132,7 @@ def test_no_mic_explains_setup():
     async def go():
         v, _, _ = make()
         v.ears = None
-        assert "isn't set up" in await v.start_listening()
+        assert "microphone" in await v.start_listening()
 
     asyncio.run(go())
 
@@ -347,7 +352,16 @@ def test_wake_listener_loop_with_fake_mic(monkeypatch):
         def close(self):
             pass
 
-    monkeypatch.setitem(sys.modules, "sounddevice", types.SimpleNamespace(InputStream=FakeStream))
+    monkeypatch.setitem(
+        sys.modules,
+        "sounddevice",
+        types.SimpleNamespace(
+            default=types.SimpleNamespace(device=(-1, -1)),
+            query_devices=lambda: [{"name": "fake mic", "max_input_channels": 1, "default_samplerate": 16000}],
+            check_input_settings=lambda **_kwargs: None,
+            InputStream=FakeStream,
+        ),
+    )
     heard, woke = [], threading.Event()
 
     def transcribe(audio):
@@ -364,3 +378,85 @@ def test_wake_listener_loop_with_fake_mic(monkeypatch):
     wl.stop()
     assert heard[-1] == "play jazz"
     assert heard[0] >= BLOCK * 10  # the whole burst (plus pre-roll) was transcribed
+
+
+def test_input_stream_falls_back_when_default_device_is_minus_one():
+    from types import SimpleNamespace
+
+    class FakeSoundDevice:
+        default = SimpleNamespace(device=(-1, -1))
+
+        @staticmethod
+        def query_devices(device=None, kind=None):
+            if device is None:
+                return [
+                    {"name": "speakers", "max_input_channels": 0, "default_samplerate": 48000},
+                    {"name": "microphone", "max_input_channels": 1, "default_samplerate": 44100},
+                ]
+            assert device == 1 and kind == "input"
+            return {"default_samplerate": 44100}
+
+        @staticmethod
+        def check_input_settings(**_kwargs):
+            raise ValueError("native 16k unsupported")
+
+        @staticmethod
+        def InputStream(**kwargs):
+            captured.update(kwargs)
+            return object()
+
+    captured = {}
+    _input_stream(FakeSoundDevice, lambda *_: None)
+    assert captured["device"] == 1
+    assert captured["samplerate"] == 44100
+    assert captured["blocksize"] == 4410
+
+
+def test_input_stream_gives_clear_error_when_no_microphone_exists():
+    from types import SimpleNamespace
+
+    class FakeSoundDevice:
+        default = SimpleNamespace(device=(-1, -1))
+
+        @staticmethod
+        def query_devices():
+            return [{"name": "speakers", "max_input_channels": 0}]
+
+    with pytest.raises(RuntimeError, match="No microphone/input device"):
+        _input_stream(FakeSoundDevice, lambda *_: None)
+
+def test_ears_can_retry_after_microphone_start_fails(monkeypatch):
+    import sys
+    import types
+
+    attempts = []
+
+    class FakeStream:
+        def __init__(self, **_kwargs):
+            self.started = False
+        def start(self):
+            attempts.append("start")
+            if len(attempts) == 1:
+                raise OSError("device disconnected")
+            self.started = True
+        def stop(self):
+            self.started = False
+        def close(self):
+            pass
+
+    fake_sd = types.SimpleNamespace(
+        default=types.SimpleNamespace(device=(-1, -1)),
+        query_devices=lambda: [{"name": "USB microphone", "max_input_channels": 1, "default_samplerate": 48000}],
+        check_input_settings=lambda **_kwargs: None,
+        InputStream=lambda **kwargs: FakeStream(**kwargs),
+    )
+    monkeypatch.setitem(sys.modules, "sounddevice", fake_sd)
+
+    ears = voice_mod.Ears()
+    with pytest.raises(OSError, match="device disconnected"):
+        ears.start()
+    assert ears.recording is False
+
+    ears.start()
+    assert ears.recording is True
+    ears.stop()
