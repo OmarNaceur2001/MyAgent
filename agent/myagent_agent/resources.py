@@ -215,7 +215,7 @@ class ResourcePermissions:
                 break
         return json.dumps({"folder": str(folder), "entries": rows, "truncated": len(rows) == 100}, ensure_ascii=False)
 
-    def read_file(self, raw_path: str, max_bytes: int = 200_000) -> str:
+    def read_file(self, raw_path: str, max_bytes: int = 64_000) -> str:
         file = self.check(raw_path, "read", must_exist=True)
         if not file.is_file():
             raise SafetyError("That path is not a regular file.")
