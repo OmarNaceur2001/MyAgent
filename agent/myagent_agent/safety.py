@@ -75,7 +75,8 @@ class ActionLog:
         secret_keys = {"content", "password", "token", "access_token", "refresh_token", "api_key", "secret"}
 
         def redact(value, key: str = ""):
-            if key.casefold() in secret_keys:
+            lowered = key.casefold()
+            if lowered in secret_keys or any(part in lowered for part in ("secret", "password", "credential", "token", "api_key")):
                 return "[redacted]"
             if isinstance(value, dict):
                 return {k: redact(v, str(k)) for k, v in value.items()}
