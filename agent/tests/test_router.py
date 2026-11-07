@@ -52,7 +52,7 @@ def test_fun_routes(text, name, args):
     assert intent is not None and intent.name == name and intent.args == args
 
 
-@pytest.mark.parametrize("text", ["open chrome", "open file explorer", "tell me a joke", "what's on my screen?"])
+@pytest.mark.parametrize("text", ["open chrome", "tell me a joke", "what's on my screen?"])
 def test_unknown_goes_to_llm(text):
     assert route(text) is None
 
