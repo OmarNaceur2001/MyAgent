@@ -247,8 +247,17 @@ class Ears:
                     self._chunks.append(data.copy())
             self.level.feed(_rms(data))
 
-        self._stream = _input_stream(sd, on_audio)
-        self._stream.start()
+        stream = _input_stream(sd, on_audio)
+        try:
+            stream.start()
+        except Exception:
+            try:
+                stream.close()
+            except Exception:
+                pass
+            self._stream = None
+            raise
+        self._stream = stream
 
     def stop(self):
         """Stop recording and return the audio as a 1-D float32 array (or None)."""
@@ -348,6 +357,11 @@ class WakeListener:
                     stream = _input_stream(sd, lambda d, *_: blocks.put(d.copy()))
                     stream.start()
                 except Exception as exc:  # mic busy or missing: try again later
+                    if stream is not None:
+                        try:
+                            stream.close()
+                        except Exception:
+                            pass
                     log.warning("wake word can't open the mic: %s", exc)
                     stream = None
                     time.sleep(3)
