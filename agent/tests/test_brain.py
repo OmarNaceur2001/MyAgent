@@ -49,11 +49,11 @@ def test_only_web_and_fun_tools_exist(tmp_path):
     names = set(brain.tools.tools)
     assert names == {
         "play_youtube", "web_search", "open_website", "start_game", "start_timer", "start_pomodoro",
-        "list_folder", "read_file", "write_file", "delete_file",
+        "open_app", "list_folder", "read_file", "write_file", "delete_file",
     }
     assert brain.tools.tools["write_file"].risk == "confirm"
     assert brain.tools.tools["delete_file"].risk == "confirm"
-    for forbidden in ("find_files", "move_path", "delete_path", "create_folder", "open_app", "open_path"):
+    for forbidden in ("find_files", "move_path", "delete_path", "create_folder", "open_path"):
         assert forbidden not in names
 
 
@@ -182,3 +182,29 @@ def test_file_tools_fail_closed_without_a_folder_grant(tmp_path):
             await brain.tools.tools["list_folder"].handler({"path": str(tmp_path)})
 
     asyncio.run(go())
+
+
+def test_open_app_tool_is_allowlisted(tmp_path, monkeypatch):
+    from myagent_agent import tools as tools_module
+
+    launched = []
+    monkeypatch.setattr(
+        tools_module,
+        "launch_allowed_app",
+        lambda app: launched.append(app) or f"Opened {app}.",
+    )
+
+    async def go():
+        brain, _, _ = make(tmp_path, [])
+        result = await brain.tools.tools["open_app"].handler({"app": "excel"})
+        assert result == "Opened excel."
+        assert launched == ["excel"]
+
+    asyncio.run(go())
+
+
+def test_unknown_app_tool_is_refused_by_launcher(tmp_path):
+    from myagent_agent.desktop_apps import launch_allowed_app
+
+    with pytest.raises(SafetyError, match="approved app list"):
+        launch_allowed_app("powershell")
