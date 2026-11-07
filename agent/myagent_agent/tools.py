@@ -22,6 +22,7 @@ from urllib.parse import quote_plus, urlparse
 import httpx
 
 from . import events
+from .desktop_apps import launch_allowed_app
 from .resources import ResourcePermissions
 from .safety import SafetyError
 
@@ -113,6 +114,13 @@ class Toolbox:
             ),
 
             Tool(
+                "open_app",
+                "Open an installed desktop application from MyAgent's safe allowlist. Supported app IDs: excel, word, powerpoint, notepad, calculator, file_explorer. Use only when the user explicitly asks to open or launch the application.",
+                _obj({"app": {**S, "enum": ["excel", "word", "powerpoint", "notepad", "calculator", "file_explorer"]}}, ["app"]),
+                self.open_app,
+                title=lambda a: "Open " + str(a.get("app", "application")),
+            ),
+            Tool(
                 "list_folder",
                 "List the immediate contents of a folder the user explicitly granted to MyAgent. Never scan recursively.",
                 _obj({"path": {**S, "description": "Absolute folder path inside a granted folder"}}, ["path"]),
@@ -198,6 +206,9 @@ class Toolbox:
         await self.timers.start_pomodoro(PomodoroConfig(focus_min=float(a.get("focus_minutes") or 25)))
         return "Pomodoro started"
 
+
+    async def open_app(self, a: dict) -> str:
+        return launch_allowed_app(str(a.get("app", "")))
 
     def _resource_manager(self) -> ResourcePermissions:
         if self.resources is None:
