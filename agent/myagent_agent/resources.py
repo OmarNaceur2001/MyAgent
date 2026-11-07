@@ -31,7 +31,8 @@ def sys_platform_is_macos() -> bool:
 
 def _protected_scope(root: Path) -> bool:
     # Do not let a broad grant expose a user profile or operating-system tree.
-    if root == Path.home().expanduser().resolve():
+    home = Path.home().expanduser().resolve()
+    if root == home or root == home.parent:
         return True
     protected: list[Path] = []
     if os.name == "nt":
@@ -85,7 +86,12 @@ class ResourcePermissions:
                 if not isinstance(item, dict):
                     continue
                 root = Path(str(item.get("path", ""))).expanduser().resolve(strict=True)
-                if not root.is_dir() or root.parent == root:
+                if (
+                    not root.is_dir()
+                    or root.parent == root
+                    or _protected_scope(root)
+                    or _looks_sensitive(root)
+                ):
                     continue
                 read, write = item.get("read"), item.get("write")
                 if type(read) is bool and type(write) is bool and (read or write):
@@ -117,6 +123,8 @@ class ResourcePermissions:
         candidate = Path(raw_path).expanduser()
         if not candidate.is_absolute():
             raise SafetyError("The folder picker must provide an absolute path.")
+        if os.name == "nt" and candidate.anchor.startswith("\\\\"):
+            raise SafetyError("Network shares are not supported for local folder grants.")
         try:
             root = candidate.resolve(strict=True)
         except (OSError, RuntimeError) as exc:
