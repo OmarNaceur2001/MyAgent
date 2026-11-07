@@ -173,10 +173,7 @@ async def handle(name: str, args: dict) -> None:
         )
         await hub.broadcast(resource_permissions_event())
         await hub.broadcast(events.message(
-            f"Folder access granted: {grant['path']} ("
-            f"{'read' if grant['read'] else ''}"
-            f"{' and ' if grant['read'] and grant['write'] else ''}"
-            f"{'write' if grant['write'] else ''}).",
+            "Folder access updated. New folders start with read-only permission.",
             tone="happy",
         ))
     elif name == "resources.update":
