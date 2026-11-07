@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from pathlib import Path
 from typing import Literal
 
@@ -17,9 +18,33 @@ log = logging.getLogger("myagent.resources")
 Permission = Literal["read", "write"]
 
 _SECRET_DIRS = {
-    ".ssh", ".gnupg", ".aws", ".azure", ".kube", ".config/gcloud",
+    ".ssh", ".gnupg", ".aws", ".azure", ".kube",
     "credentials", "secrets", "passwords",
 }
+_SECRET_PATHS = {(".config", "gcloud")}
+
+
+def sys_platform_is_macos() -> bool:
+    import sys
+    return sys.platform == "darwin"
+
+
+def _protected_scope(root: Path) -> bool:
+    # Do not let a broad grant expose a user profile or operating-system tree.
+    if root == Path.home().expanduser().resolve():
+        return True
+    protected: list[Path] = []
+    if os.name == "nt":
+        for key in ("WINDIR", "SYSTEMROOT", "PROGRAMFILES", "PROGRAMFILES(X86)", "PROGRAMDATA", "APPDATA", "LOCALAPPDATA"):
+            value = os.environ.get(key)
+            if value:
+                protected.append(Path(value).expanduser().resolve())
+    else:
+        protected.extend(Path(p) for p in ("/etc", "/usr", "/bin", "/sbin", "/proc", "/sys", "/dev", "/root"))
+        if sys_platform_is_macos():
+            protected.extend(Path(p) for p in ("/System", "/Library", "/Applications", "/private"))
+    return any(root == item or item in root.parents for item in protected)
+
 _SECRET_FILES = {
     ".env", ".env.local", ".netrc", "id_rsa", "id_ed25519",
     "credentials.json", "token.json", "secrets.json",
@@ -29,6 +54,8 @@ _SECRET_FILES = {
 def _looks_sensitive(path: Path) -> bool:
     parts = [part.casefold() for part in path.parts]
     if any(part in _SECRET_DIRS for part in parts):
+        return True
+    if any(tuple(parts[i:i + 2]) in _SECRET_PATHS for i in range(max(0, len(parts) - 1))):
         return True
     name = path.name.casefold()
     return (
@@ -92,6 +119,8 @@ class ResourcePermissions:
             raise SafetyError("That folder does not exist or cannot be opened.") from exc
         if not root.is_dir():
             raise SafetyError("Only folders can be granted.")
+        if _protected_scope(root):
+            raise SafetyError("System folders, application-data folders, and the entire user profile cannot be granted. Choose a specific working folder.")
         if root.parent == root:
             raise SafetyError("A whole drive or filesystem root cannot be granted. Choose a folder inside it.")
         if _looks_sensitive(root):
@@ -126,7 +155,7 @@ class ResourcePermissions:
 
     def _existing_grant(self, raw_path: str) -> str:
         try:
-            resolved = str(Path(raw_path).expanduser().resolve(strict=True))
+            resolved = str(Path(raw_path).expanduser().resolve(strict=False))
         except (OSError, RuntimeError) as exc:
             raise SafetyError("That folder no longer exists.") from exc
         if resolved not in self._grants:
