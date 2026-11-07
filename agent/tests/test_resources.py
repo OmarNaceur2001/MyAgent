@@ -61,7 +61,7 @@ def test_revoke_and_disable_both_permissions(tmp_path):
     manager.grant(str(root), read=True, write=True)
     manager.update(str(root), read=False, write=False)
     assert manager.list() == []
-    with pytest.raises(SafetyError, match="not been granted"):
+    with pytest.raises(SafetyError, match="no read permission"):
         manager.list_folder(str(root))
 
 
