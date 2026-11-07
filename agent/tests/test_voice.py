@@ -132,7 +132,7 @@ def test_no_mic_explains_setup():
     async def go():
         v, _, _ = make()
         v.ears = None
-        assert "isn't set up" in await v.start_listening()
+        assert "microphone" in await v.start_listening()
 
     asyncio.run(go())
 
