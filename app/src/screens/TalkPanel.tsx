@@ -2,6 +2,7 @@ import { Check, Circle, LoaderCircle, X } from "lucide-react";
 import { useEffect, useRef } from "react";
 import type { Features } from "../lib/events";
 import { VoiceSettings } from "../components/VoiceSettings";
+import { ResourceSettings } from "../components/ResourceSettings";
 import { useMyAgent } from "../lib/store";
 
 // "setup": built, but needs something installed/running on this PC.
@@ -65,6 +66,7 @@ export function TalkPanel() {
       </div>
 
       <VoiceSettings />
+      <ResourceSettings />
 
       <section className="skills" aria-label="What MyAgent can do">
         <h3 className="sub">What MyAgent can do</h3>
