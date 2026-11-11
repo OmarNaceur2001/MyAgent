@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld("myagent", {
   moveCompanion: (x, y) => ipcRenderer.send("myagent:companion-move", Number(x), Number(y)),
   companionDragEnd: () => ipcRenderer.send("myagent:companion-drag-end"),
   selectFolder: () => ipcRenderer.invoke("myagent:select-folder"),
+  getAgentToken: () => ipcRenderer.invoke("myagent:agent-token"),
   // Ctrl+Shift+Space (global shortcut) → toggle listening
   onTalkShortcut: (cb) => {
     const handler = () => cb();

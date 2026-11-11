@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import random
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -27,6 +28,7 @@ from .store import Store
 from .timer import PomodoroConfig, TimerService
 from .tools import Toolbox
 from .voice import Voice
+from .web_security import AGENT_SUBPROTOCOL, is_valid_agent_session
 
 log = logging.getLogger("myagent")
 
@@ -124,7 +126,13 @@ async def health() -> dict:
 
 @app.websocket("/ws")
 async def ws_endpoint(ws: WebSocket) -> None:
-    await ws.accept()
+    token = os.environ.get("MYAGENT_LOCAL_TOKEN", "")
+    offered = list(ws.scope.get("subprotocols") or [])
+    if not is_valid_agent_session(offered, token):
+        log.warning("rejected an unauthenticated WebSocket client")
+        await ws.close(code=1008, reason="Unauthorized MyAgent session")
+        return
+    await ws.accept(subprotocol=AGENT_SUBPROTOCOL)
     hub.clients.add(ws)
     await ws.send_json(events.hello(__version__, await features()))
     await ws.send_json(timers.state_event())

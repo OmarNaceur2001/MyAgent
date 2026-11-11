@@ -3,6 +3,8 @@
 The UI and the agent talk over one WebSocket: `ws://127.0.0.1:8765/ws`.
 Every message is JSON: `{ "type": string, "payload": object }`.
 
+The handshake requires the `myagent.v1` and `myagent-auth.<token>` subprotocols. Electron generates a random token and exposes it only to its validated main and companion windows through the preload bridge. Browser-only development must explicitly set matching `MYAGENT_LOCAL_TOKEN` and `VITE_MYAGENT_LOCAL_TOKEN` values. Never hard-code, log, commit, or share the token.
+
 **The rule:** the UI displays state and sends commands. It does not directly read or
 write user files. The only filesystem bridge in Electron is a native folder picker;
 all file operations are performed by the Python agent and checked against explicit
