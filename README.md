@@ -172,7 +172,11 @@ Run these commands from the relevant folder:
 Browser-only development is supported with an explicit shared token. In the first PowerShell terminal, generate one and start the agent:
 
 ```powershell
-$token = [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32)).ToLower()
+$random = [Security.Cryptography.RandomNumberGenerator]::Create()
+$bytes = New-Object -TypeName 'System.Byte[]' -ArgumentList 32
+$random.GetBytes($bytes)
+$token = [BitConverter]::ToString($bytes).Replace("-", "").ToLowerInvariant()
+$random.Dispose()
 Write-Host "Copy this token for the browser terminal: $token"
 $env:MYAGENT_LOCAL_TOKEN = $token
 cd agent
