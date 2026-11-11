@@ -1,6 +1,18 @@
 import type { AgentEvent, CommandName } from "./events";
 import { desktop } from "./desktop";
 
+// Extend the standard ImportMeta types with the Vite development variables
+// used only for the explicitly configured browser-only development mode.
+declare global {
+  interface ImportMetaEnv {
+    readonly DEV: boolean;
+    readonly VITE_MYAGENT_LOCAL_TOKEN?: string;
+  }
+  interface ImportMeta {
+    readonly env: ImportMetaEnv;
+  }
+}
+
 // WebSocket link to the Python agent, with automatic reconnect.
 // Both windows (main + companion) open their own link; the agent keeps them in sync.
 
