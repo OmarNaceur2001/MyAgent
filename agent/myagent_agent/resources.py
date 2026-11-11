@@ -227,6 +227,10 @@ class ResourcePermissions:
             raise SafetyError("This file is not UTF-8 text; binary files are not read.") from exc
 
     def write_file(self, raw_path: str, content: str, *, replace: bool = False, max_bytes: int = 1_000_000) -> str:
+        # Check the caller-supplied leaf before resolve(): resolving first hides
+        # an in-scope symlink and could replace its target instead of refusing it.
+        if Path(str(raw_path)).expanduser().is_symlink():
+            raise SafetyError("Symbolic links cannot be created or replaced.")
         file = self.check(raw_path, "write")
         parent = self.check(str(file.parent), "write", must_exist=True)
         if not parent.is_dir():
@@ -241,8 +245,11 @@ class ResourcePermissions:
         return f"Wrote {len(content.encode('utf-8'))} bytes to {file}"
 
     def delete_file(self, raw_path: str) -> str:
+        # Inspect the original path before check() resolves symlinks to targets.
+        if Path(str(raw_path)).expanduser().is_symlink():
+            raise SafetyError("Symbolic links cannot be deleted.")
         file = self.check(raw_path, "write", must_exist=True)
-        if file.is_symlink() or not file.is_file():
+        if not file.is_file():
             raise SafetyError("Only regular files can be deleted. Folders and symbolic links are not allowed.")
         file.unlink()
         return f"Deleted file {file}"

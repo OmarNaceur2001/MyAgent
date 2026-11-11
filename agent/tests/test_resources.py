@@ -103,3 +103,27 @@ def test_symlink_escape_is_denied(tmp_path):
     manager.grant(str(root))
     with pytest.raises(SafetyError, match="no read permission"):
         manager.list_folder(str(root / "escape"))
+
+
+
+def test_in_scope_symlink_leaf_cannot_replace_or_delete_its_target(tmp_path):
+    root = tmp_path / "workspace"
+    root.mkdir()
+    target = root / "target.txt"
+    target.write_text("keep this content", encoding="utf-8")
+    alias = root / "alias.txt"
+    try:
+        alias.symlink_to(target)
+    except (OSError, NotImplementedError):
+        pytest.skip("Symlinks are not available on this platform")
+
+    manager = ResourcePermissions(tmp_path / "permissions.json")
+    manager.grant(str(root), read=True, write=True)
+
+    with pytest.raises(SafetyError, match="Symbolic links cannot be created or replaced"):
+        manager.write_file(str(alias), "replacement", replace=True)
+    with pytest.raises(SafetyError, match="Symbolic links cannot be deleted"):
+        manager.delete_file(str(alias))
+
+    assert alias.is_symlink()
+    assert target.read_text(encoding="utf-8") == "keep this content"
