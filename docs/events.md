@@ -3,8 +3,12 @@
 The UI and the agent talk over one WebSocket: `ws://127.0.0.1:8765/ws`.
 Every message is JSON: `{ "type": string, "payload": object }`.
 
-**The rule:** the UI only *displays* state and *sends commands*. It never touches
-the computer. Everything that acts (files, browser, apps, timers) lives in the agent.
+The handshake requires the `myagent.v1` and `myagent-auth.<token>` subprotocols. Electron generates a random token and exposes it only to its validated main and companion windows through the preload bridge. Browser-only development must explicitly set matching `MYAGENT_LOCAL_TOKEN` and `VITE_MYAGENT_LOCAL_TOKEN` values. Never hard-code, log, commit, or share the token.
+
+**The rule:** the UI displays state and sends commands. It does not directly read or
+write user files. The only filesystem bridge in Electron is a native folder picker;
+all file operations are performed by the Python agent and checked against explicit
+folder grants. Browser, timer, and other tool actions also live in the agent.
 
 TypeScript types: `app/src/lib/events.ts` · Python: `agent/myagent_agent/events.py`.
 Keep the three in sync when adding an event.
@@ -29,6 +33,7 @@ Keep the three in sync when adding an event.
 | `stats` | `{ focus_minutes_today, sessions_today, coins }` | on connect and after a focus session |
 | `agent.wake` | `{}` | MyAgent heard “Hey MyAgent” |
 | `prefs` | `{ wake_word, speak_replies }` | on connect and after a change |
+| `resource.permissions` | `{ grants: [{ path, read, write }] }` | on connect and after folder-permission changes |
 | `game.open` | `{ game }` | open a game on MyAgent's stage: `tictactoe` `rps` `memory` |
 | `music.playing` | `{ title, query }` | a song was opened on YouTube (MyAgent dances for a bit) |
 | `error` | `{ message }` | a command failed |
@@ -58,6 +63,10 @@ The agent does **not** send a tick every second. The UI counts down locally from
 | `voice.start` · `voice.stop` | `{}`: start listening; recording stops by itself when you stop talking (`voice.stop` = stop now) |
 | `voice.hush` | `{}`: stop speaking |
 | `prefs.set` | `{ key, value }`: `wake_word` or `speak_replies` (booleans), saved in `agent/data/prefs.json` |
+| `resources.list` | `{}`: request the current folder grants |
+| `resources.grant` | `{ path, read, write }`: add a folder selected with the native Electron folder picker |
+| `resources.update` | `{ path, read?, write? }`: change one or both permissions |
+| `resources.revoke` | `{ path }`: revoke a folder grant immediately |
 | `game.result` | `{ game, outcome }`: outcome from the user's side, `win` `lose` `draw`; wins/draws earn coins |
 | `confirm.reply` | `{ request_id, approved }` |
 | `agent.cancel` | `{}`: stop the current task (also: saying "stop") |
@@ -76,3 +85,40 @@ agent status first (listening / thinking / working / speaking / confirmation),
 then short reactions (`timer.done` → celebrating, `agent.done` → happy or sad,
 confused message → confused), then focus timer → focus, then idle → sleepy after
 a few quiet minutes.
+
+
+## Local folder permissions
+
+Folder access is opt-in and scoped. In **Talk → Local folder access**, choose a folder
+using the native operating-system picker. New grants default to read-only. Read and
+write access can be changed independently, and every grant can be revoked.
+
+The agent can:
+- List one explicitly requested folder (one level only; no recursive drive scan).
+- Read UTF-8 text files up to 64 KB in a read-enabled folder.
+- Create or replace UTF-8 text files up to 1 MB in a write-enabled folder, after confirmation.
+- Delete a regular file in a write-enabled folder, after confirmation.
+
+Whole-drive roots, common credential directories, common secret filenames, binary files,
+folders, and symbolic links that resolve outside an approved folder are refused. The agent
+has no shell, arbitrary app-launch, operating-system settings, or credential-store tools. A separate `open_app` action can only launch an allowlisted app ID: Excel, Word, PowerPoint, Notepad, Calculator, or File Explorer. The local
+permissions file is stored at `agent/data/resource_permissions.json`.
+
+The Electron renderer never receives a general filesystem API. It can only ask Electron's
+main process to open the native folder picker; the selected path is then registered with
+the Python agent, which enforces the scope on every operation.
+
+
+## Desktop application launches
+
+The agent exposes one `open_app` tool with a fixed allowlist: `excel`, `word`,
+`powerpoint`, `notepad`, `calculator`, and `file_explorer`. The user must
+explicitly ask to open or launch one of these apps. Windows uses registered app
+paths or the OS application association; macOS uses `open -a`; Linux uses
+installed applications (LibreOffice for Office document apps). The tool accepts
+no executable paths, command arguments, scripts, or shell commands.
+
+The fast intent router handles phrases such as "open Excel app" before asking the
+language model to respond. Known website aliases are also matched with conservative
+typo correction against a fixed public-site list (for example, "facbook" → Facebook);
+arbitrary URLs still pass through the existing URL safety check.

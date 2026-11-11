@@ -1,4 +1,17 @@
 import type { AgentEvent, CommandName } from "./events";
+import { desktop } from "./desktop";
+
+// Extend the standard ImportMeta types with the Vite development variables
+// used only for the explicitly configured browser-only development mode.
+declare global {
+  interface ImportMetaEnv {
+    readonly DEV: boolean;
+    readonly VITE_MYAGENT_LOCAL_TOKEN?: string;
+  }
+  interface ImportMeta {
+    readonly env: ImportMetaEnv;
+  }
+}
 
 // WebSocket link to the Python agent, with automatic reconnect.
 // Both windows (main + companion) open their own link; the agent keeps them in sync.
@@ -21,8 +34,20 @@ class AgentLink {
     this.open();
   }
 
-  private open() {
-    const ws = new WebSocket(AGENT_URL);
+  private async open() {
+    if (!this.started) return;
+    let token = await desktop.getAgentToken().catch(() => null);
+    // Browser-only development has no Electron preload; allow an explicit,
+    // untracked Vite environment token for that local development mode only.
+    if (!token && import.meta.env.DEV) token = import.meta.env.VITE_MYAGENT_LOCAL_TOKEN ?? null;
+    if (!this.started) return;
+    if (!token) {
+      this.connListeners.forEach((l) => l(false));
+      console.warn("MyAgent: no local-session token is available; use the Electron app or configure the browser-dev token.");
+      return;
+    }
+
+    const ws = new WebSocket(AGENT_URL, ["myagent.v1", `myagent-auth.${token}`]);
     this.ws = ws;
     ws.onopen = () => {
       this.retry = 0;
@@ -38,6 +63,7 @@ class AgentLink {
     };
     ws.onclose = () => {
       this.connListeners.forEach((l) => l(false));
+      if (!this.started) return;
       // back off gently: 0.5s, 1s, 2s … up to 5s
       const wait = Math.min(5000, 500 * 2 ** this.retry++);
       setTimeout(() => this.open(), wait);

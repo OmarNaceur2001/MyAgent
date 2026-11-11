@@ -1,5 +1,7 @@
-"""Start the MyAgent agent:  python run.py"""
+"""Start the MyAgent agent with a private local-session token."""
 import logging
+import os
+import re
 import socket
 import sys
 
@@ -14,6 +16,13 @@ def port_in_use() -> bool:
 
 
 if __name__ == "__main__":
+    token = os.environ.get("MYAGENT_LOCAL_TOKEN", "")
+    if not re.fullmatch(r"[A-Za-z0-9_-]{32,128}", token):
+        print(
+            "MyAgent requires a private local-session token. Start it from the Electron app, "
+            "or set MYAGENT_LOCAL_TOKEN to a random value of at least 32 characters."
+        )
+        sys.exit(2)
     if port_in_use():
         print(
             "\nMyAgent's agent is already running (the app starts it for you).\n"

@@ -8,6 +8,8 @@ type DesktopApi = {
   setCompanionHover: (hovering: boolean) => void;
   moveCompanion: (x: number, y: number) => void;
   companionDragEnd: () => void;
+  selectFolder: () => Promise<string | null>;
+  getAgentToken: () => Promise<string | null>;
   onTalkShortcut: (cb: () => void) => () => void;
 };
 
@@ -23,6 +25,8 @@ export const desktop: DesktopApi = {
   setCompanionHover: (h) => window.myagent?.setCompanionHover(h),
   moveCompanion: (x, y) => window.myagent?.moveCompanion(x, y),
   companionDragEnd: () => window.myagent?.companionDragEnd(),
+  selectFolder: () => window.myagent?.selectFolder() ?? Promise.resolve(null),
+  getAgentToken: () => window.myagent?.getAgentToken() ?? Promise.resolve(null),
   onTalkShortcut: (cb) => window.myagent?.onTalkShortcut(cb) ?? (() => {}),
 };
 

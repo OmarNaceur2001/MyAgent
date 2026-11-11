@@ -7,6 +7,7 @@ import pytest
 from myagent_agent.brain import Brain
 from myagent_agent.llm import Reply, ToolCall, parse_message
 from myagent_agent.safety import ActionLog, ConfirmationBroker, SafetyError
+from myagent_agent.resources import ResourcePermissions
 from myagent_agent.tools import Toolbox, parse_first_video, safe_url
 
 
@@ -21,7 +22,7 @@ class FakeLLM:
         return self.replies.pop(0)
 
 
-def make(tmp_path, replies, video=("dQw4w9WgXcQ", "A Song")):
+def make(tmp_path, replies, video=("dQw4w9WgXcQ", "A Song"), resources=None):
     sent, opened = [], []
 
     async def emit(e):
@@ -30,7 +31,7 @@ def make(tmp_path, replies, video=("dQw4w9WgXcQ", "A Song")):
     async def youtube(q):
         return video
 
-    toolbox = Toolbox(None, emit=emit, opener=opened.append, youtube=youtube)
+    toolbox = Toolbox(None, emit=emit, opener=opened.append, youtube=youtube, resources=resources)
     brain = Brain(FakeLLM(replies), toolbox, emit, ConfirmationBroker(), ActionLog(tmp_path / "log.jsonl"))
     return brain, sent, opened
 
@@ -46,8 +47,13 @@ def final_steps(sent):
 def test_only_web_and_fun_tools_exist(tmp_path):
     brain, _, _ = make(tmp_path, [])
     names = set(brain.tools.tools)
-    assert names == {"play_youtube", "web_search", "open_website", "start_game", "start_timer", "start_pomodoro"}
-    for forbidden in ("find_files", "move_path", "delete_path", "create_folder", "open_app", "open_path"):
+    assert names == {
+        "play_youtube", "web_search", "open_website", "start_game", "start_timer", "start_pomodoro",
+        "open_app", "list_folder", "read_file", "write_file", "delete_file",
+    }
+    assert brain.tools.tools["write_file"].risk == "confirm"
+    assert brain.tools.tools["delete_file"].risk == "confirm"
+    for forbidden in ("find_files", "move_path", "delete_path", "create_folder", "open_path"):
         assert forbidden not in names
 
 
@@ -146,3 +152,59 @@ def test_brain_sees_the_conversation_so_far(tmp_path):
     text = " ".join(m["content"] or "" for m in llm.all)
     assert "lofi hip hop" in text and llm.all[-1]["content"] == "what song did you just play?"
     assert len(brain.memory.recent()) == 4  # the new exchange was remembered
+
+
+def test_file_tools_only_access_user_granted_roots(tmp_path):
+    async def go():
+        root = tmp_path / "approved"
+        outside = tmp_path / "outside"
+        root.mkdir()
+        outside.mkdir()
+        (root / "notes.txt").write_text("hello", encoding="utf-8")
+        (outside / "private.txt").write_text("private", encoding="utf-8")
+        grants = ResourcePermissions(tmp_path / "permissions.json")
+        grants.grant(str(root), read=True, write=False)
+        brain, _, _ = make(tmp_path, [], resources=grants)
+
+        assert await brain.tools.tools["read_file"].handler({"path": str(root / "notes.txt")}) == "hello"
+        with pytest.raises(SafetyError, match="no read permission"):
+            await brain.tools.tools["read_file"].handler({"path": str(outside / "private.txt")})
+        with pytest.raises(SafetyError, match="no write permission"):
+            await brain.tools.tools["write_file"].handler({"path": str(root / "new.txt"), "content": "x"})
+
+    asyncio.run(go())
+
+
+def test_file_tools_fail_closed_without_a_folder_grant(tmp_path):
+    async def go():
+        brain, _, _ = make(tmp_path, [])
+        with pytest.raises(SafetyError, match="not configured"):
+            await brain.tools.tools["list_folder"].handler({"path": str(tmp_path)})
+
+    asyncio.run(go())
+
+
+def test_open_app_tool_is_allowlisted(tmp_path, monkeypatch):
+    from myagent_agent import tools as tools_module
+
+    launched = []
+    monkeypatch.setattr(
+        tools_module,
+        "launch_allowed_app",
+        lambda app: launched.append(app) or f"Opened {app}.",
+    )
+
+    async def go():
+        brain, _, _ = make(tmp_path, [])
+        result = await brain.tools.tools["open_app"].handler({"app": "excel"})
+        assert result == "Opened excel."
+        assert launched == ["excel"]
+
+    asyncio.run(go())
+
+
+def test_unknown_app_tool_is_refused_by_launcher(tmp_path):
+    from myagent_agent.desktop_apps import launch_allowed_app
+
+    with pytest.raises(SafetyError, match="approved app list"):
+        launch_allowed_app("powershell")

@@ -2,7 +2,7 @@
 // The rest of the app imports ONLY from here, never from skins/.
 // To change MyAgent's design: add a folder in skins/ and change the line below.
 
-export { CritterSkin as Character } from "./skins/critter/CritterSkin";
+export { OmarSkin as Character } from "./skins/omar/OmarSkin";
 
 export { MOODS, MOOD_LABEL, type Mood } from "./moods";
 export { BEATS, BEAT_MS, type Beat, type BeatCue, type CharacterProps, type Gaze } from "./types";

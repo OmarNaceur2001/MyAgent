@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import random
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -20,12 +21,14 @@ from .config import settings
 from .llm import OllamaLLM
 from .memory import ShortMemory
 from .prefs import Prefs
+from .resources import ResourcePermissions
 from .router import Intent, route
-from .safety import ActionLog, ConfirmationBroker
+from .safety import ActionLog, ConfirmationBroker, SafetyError
 from .store import Store
 from .timer import PomodoroConfig, TimerService
 from .tools import Toolbox
 from .voice import Voice
+from .web_security import AGENT_SUBPROTOCOL, is_valid_agent_session
 
 log = logging.getLogger("myagent")
 
@@ -62,7 +65,8 @@ store = Store(db_file if (db_file.exists() or not (DATA_DIR / "mimo.db").exists(
 timers = TimerService(hub.broadcast, store)
 llm = OllamaLLM(settings.ollama_url, settings.model, settings.keep_alive)
 broker = ConfirmationBroker()
-toolbox = Toolbox(timers, emit=lambda e: emit(e))
+resource_permissions = ResourcePermissions(DATA_DIR / "resource_permissions.json")
+toolbox = Toolbox(timers, emit=lambda e: emit(e), resources=resource_permissions)
 
 
 async def emit(evt: dict) -> None:
@@ -86,6 +90,10 @@ voice.speak_replies = prefs.values["speak_replies"]
 
 def prefs_event() -> dict:
     return events.event("prefs", **prefs.values)
+
+
+def resource_permissions_event() -> dict:
+    return events.event("resource.permissions", grants=resource_permissions.list())
 
 
 async def features() -> dict[str, bool]:
@@ -118,12 +126,19 @@ async def health() -> dict:
 
 @app.websocket("/ws")
 async def ws_endpoint(ws: WebSocket) -> None:
-    await ws.accept()
+    token = os.environ.get("MYAGENT_LOCAL_TOKEN", "")
+    offered = list(ws.scope.get("subprotocols") or [])
+    if not is_valid_agent_session(offered, token):
+        log.warning("rejected an unauthenticated WebSocket client")
+        await ws.close(code=1008, reason="Unauthorized MyAgent session")
+        return
+    await ws.accept(subprotocol=AGENT_SUBPROTOCOL)
     hub.clients.add(ws)
     await ws.send_json(events.hello(__version__, await features()))
     await ws.send_json(timers.state_event())
     await ws.send_json(events.event("stats", **store.stats()))
     await ws.send_json(prefs_event())
+    await ws.send_json(resource_permissions_event())
     await ws.send_json(events.status("working" if brain.busy else "idle"))
     try:
         while True:
@@ -156,6 +171,26 @@ async def handle(name: str, args: dict) -> None:
             await hub.broadcast(events.message(problem, tone="confused"))
     elif name == "voice.stop":
         await voice.stop_listening()
+    elif name == "resources.list":
+        await hub.broadcast(resource_permissions_event())
+    elif name == "resources.grant":
+        grant = resource_permissions.grant(
+            str(args.get("path", "")),
+            read=args.get("read", True),
+            write=args.get("write", False),
+        )
+        await hub.broadcast(resource_permissions_event())
+        await hub.broadcast(events.message(
+            "Folder access updated. New folders start with read-only permission.",
+            tone="happy",
+        ))
+    elif name == "resources.update":
+        path = str(args.get("path", ""))
+        resource_permissions.update(path, read=args.get("read"), write=args.get("write"))
+        await hub.broadcast(resource_permissions_event())
+    elif name == "resources.revoke":
+        resource_permissions.revoke(str(args.get("path", "")))
+        await hub.broadcast(resource_permissions_event())
     elif name == "prefs.set":
         key, value = str(args.get("key", "")), args.get("value")
         if not prefs.set(key, value):
@@ -225,6 +260,8 @@ def _did(intent: Intent) -> str:
     """What a quick command did, in brackets, so the LLM knows later."""
     a = intent.args
     return {"music.play": f"[played “{a.get('query')}” on YouTube]",
+            "website.open": f"[opened {a.get('url')}]",
+            "app.open": f"[opened {a.get('app')} application]",
             "game.open": f"[opened {GAME_NAMES.get(a.get('game'), 'a game')}]",
             "pomodoro.start": "[started a Pomodoro]",
             "timer.start": f"[started a {a.get('minutes')}-minute timer]"}.get(intent.name, "")
@@ -243,6 +280,17 @@ async def run_intent(intent: Intent, speak: bool) -> str | None:
         reply = random.choice([f"Hey {settings.user_name}!", f"Hi {settings.user_name}!",
                                f"{settings.user_name}! I was just thinking about you."] if not memory.messages
                               else ["I'm here.", "Yes?", "Mm-hm?", "Listening!"])
+    elif intent.name == "website.open":
+        try:
+            reply = await toolbox.open_website({"url": a["url"]})
+        except (SafetyError, OSError) as exc:
+            reply, tone = f"I couldn't open that website: {exc}", "confused"
+    elif intent.name == "app.open":
+        try:
+            reply = await toolbox.open_app({"app": a["app"]})
+        except (SafetyError, OSError) as exc:
+            label = str(a.get("app", "application")).replace("_", " ")
+            reply, tone = f"I couldn't open {label}: {exc}", "confused"
     elif intent.name == "music.play":
         result = await toolbox.play_youtube({"query": a["query"]})
         reply = random.choice(["Ooh, good choice!", "Coming right up!", "Let's dance!"]) if result.startswith("Playing") \

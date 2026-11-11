@@ -1,8 +1,10 @@
 // Electron main process: creates the two windows and (optionally) starts the agent.
 // It does NOT do any computer control itself: that is the Python agent's job.
 
-const { app, BrowserWindow, globalShortcut, ipcMain, Menu, screen } = require("electron");
+const { app, BrowserWindow, dialog, globalShortcut, ipcMain, Menu, screen } = require("electron");
 const { spawn } = require("node:child_process");
+const { randomBytes } = require("node:crypto");
+const { fileURLToPath } = require("node:url");
 const fs = require("node:fs");
 const path = require("node:path");
 const http = require("node:http");
@@ -10,6 +12,9 @@ const http = require("node:http");
 // MYAGENT_* is current; MIMO_* still honoured so existing setups keep working.
 const DEV = (process.env.MYAGENT_DEV ?? process.env.MIMO_DEV) === "1";
 const DEV_URL = "http://localhost:5173";
+// Never reuse a caller-supplied environment token in the desktop app.
+// Each launch gets a fresh secret; browser-only development configures its own.
+const AGENT_SESSION_TOKEN = randomBytes(32).toString("hex");
 const AGENT_DIR = path.resolve(__dirname, "..", "..", "agent");
 const COMPANION = { width: 240, height: 300 };
 
@@ -39,7 +44,7 @@ function createMain() {
     minWidth: 960,
     minHeight: 640,
     title: "MyAgent",
-    backgroundColor: "#E6E2F8",
+    backgroundColor: "#FBF8F2",
     autoHideMenuBar: true,
     show: false,
     webPreferences: secure,
@@ -95,24 +100,66 @@ function openMain() {
   mainWin.focus();
 }
 
+// Only the expected top-level MyAgent renderer windows may use privileged IPC.
+function isTrustedFrame(event, win) {
+  if (!win || event.sender !== win.webContents || !event.senderFrame ||
+      event.senderFrame !== event.sender.mainFrame) return false;
+  try {
+    const frameUrl = new URL(event.senderFrame.url);
+    if (DEV) {
+      return frameUrl.origin === new URL(DEV_URL).origin && frameUrl.pathname === "/";
+    }
+    return frameUrl.protocol === "file:" &&
+      path.resolve(fileURLToPath(frameUrl)) === path.resolve(__dirname, "..", "dist", "index.html");
+  } catch {
+    return false;
+  }
+}
+
+function isTrustedAppFrame(event) {
+  return isTrustedFrame(event, mainWin) || isTrustedFrame(event, companionWin);
+}
+
 // ---------- IPC (window controls only) ----------
 
-ipcMain.on("myagent:open-main", openMain);
-ipcMain.on("myagent:companion-hover", (_e, hovering) => {
+ipcMain.on("myagent:open-main", (event) => {
+  if (isTrustedAppFrame(event)) openMain();
+});
+
+// Native folder selection is the only way the UI can request a new local scope.
+// It returns one directory path; it never grants access by itself.
+ipcMain.handle("myagent:select-folder", async (event) => {
+  if (!isTrustedFrame(event, mainWin)) return null;
+  const result = await dialog.showOpenDialog(mainWin, {
+    title: "Choose a folder MyAgent may access",
+    properties: ["openDirectory", "createDirectory"],
+  });
+  return result.canceled ? null : (result.filePaths[0] ?? null);
+});
+
+// A random per-launch token is disclosed only to the verified app windows.
+ipcMain.handle("myagent:agent-token", (event) =>
+  isTrustedAppFrame(event) ? AGENT_SESSION_TOKEN : null
+);
+
+ipcMain.on("myagent:companion-hover", (event, hovering) => {
+  if (!isTrustedFrame(event, companionWin)) return;
   companionWin?.setIgnoreMouseEvents(!hovering, { forward: true });
 });
 // Dragging is done by hand (pointer events in the renderer) instead of
 // -webkit-app-region, because drag regions swallow hover, double-click and
 // right-click on Windows.
-ipcMain.on("myagent:companion-move", (_e, x, y) => {
+ipcMain.on("myagent:companion-move", (event, x, y) => {
+  if (!isTrustedFrame(event, companionWin)) return;
   if (Number.isFinite(x) && Number.isFinite(y)) companionWin?.setPosition(Math.round(x), Math.round(y));
 });
-ipcMain.on("myagent:companion-drag-end", () => {
-  if (!companionWin) return;
+ipcMain.on("myagent:companion-drag-end", (event) => {
+  if (!isTrustedFrame(event, companionWin) || !companionWin) return;
   const [x, y] = companionWin.getPosition();
   writePrefs({ ...readPrefs(), companion: { x, y } });
 });
-ipcMain.on("myagent:companion-menu", () => {
+ipcMain.on("myagent:companion-menu", (event) => {
+  if (!isTrustedFrame(event, companionWin)) return;
   Menu.buildFromTemplate([
     { label: "Open MyAgent", click: openMain },
     { type: "separator" },
@@ -149,13 +196,21 @@ function findPython() {
 // If the agent isn't already running and a venv exists, start it for the user.
 // Otherwise the UI shows how to start it by hand.
 async function startAgent() {
-  if (await agentIsUp()) return;
-  const python = findPython();
-  if (!python) {
-    console.log("[myagent] agent not running and no agent/.venv found: start it with `python run.py`");
+  if (await agentIsUp()) {
+    console.warn("[myagent] port 8765 is already occupied. Stop the existing agent and relaunch MyAgent so it can establish its private session.");
     return;
   }
-  agentProc = spawn(python, ["run.py"], { cwd: AGENT_DIR, windowsHide: true, stdio: "inherit" });
+  const python = findPython();
+  if (!python) {
+    console.log("[myagent] agent not running and no agent/.venv found: create the Python environment, then restart MyAgent.");
+    return;
+  }
+  agentProc = spawn(python, ["run.py"], {
+    cwd: AGENT_DIR,
+    windowsHide: true,
+    stdio: "inherit",
+    env: { ...process.env, MYAGENT_LOCAL_TOKEN: AGENT_SESSION_TOKEN },
+  });
   agentProc.on("exit", (code) => {
     console.log(`[myagent] agent exited (${code})`);
     agentProc = null;
