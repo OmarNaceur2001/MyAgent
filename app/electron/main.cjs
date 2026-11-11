@@ -12,10 +12,9 @@ const http = require("node:http");
 // MYAGENT_* is current; MIMO_* still honoured so existing setups keep working.
 const DEV = (process.env.MYAGENT_DEV ?? process.env.MIMO_DEV) === "1";
 const DEV_URL = "http://localhost:5173";
-const configuredToken = process.env.MYAGENT_LOCAL_TOKEN ?? "";
-const AGENT_SESSION_TOKEN = /^[A-Za-z0-9_-]{32,128}$/.test(configuredToken)
-  ? configuredToken
-  : randomBytes(32).toString("hex");
+// Never reuse a caller-supplied environment token in the desktop app.
+// Each launch gets a fresh secret; browser-only development configures its own.
+const AGENT_SESSION_TOKEN = randomBytes(32).toString("hex");
 const AGENT_DIR = path.resolve(__dirname, "..", "..", "agent");
 const COMPANION = { width: 240, height: 300 };
 
