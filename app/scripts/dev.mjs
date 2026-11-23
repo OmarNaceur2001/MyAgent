@@ -56,8 +56,7 @@ async function waitForAgent(child, timeoutMs = 30_000) {
 }
 
 async function closeServer(server) {
-  if (!server) return;
-  await new Promise((resolveResult) => server.close(() => resolveResult()));
+  if (server) await server.close();
 }
 
 async function runBrowserMode(reason) {
@@ -86,6 +85,7 @@ async function runBrowserMode(reason) {
   });
 
   let server;
+  let agentSpawnError;
   let stopping = false;
   const stop = async (code = 0) => {
     if (stopping) return;
@@ -96,6 +96,7 @@ async function runBrowserMode(reason) {
   };
 
   agent.once("error", (error) => {
+    agentSpawnError = error;
     console.error("[MyAgent] Could not start Python agent:", error);
     void stop(1);
   });
@@ -110,6 +111,7 @@ async function runBrowserMode(reason) {
 
   try {
     const health = await waitForAgent(agent);
+    if (agentSpawnError) throw agentSpawnError;
     console.log(`[MyAgent] Python agent ready. Ollama model available: ${Boolean(health.features?.llm)}.`);
     server = await createServer();
     await server.listen();
