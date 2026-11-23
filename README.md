@@ -95,6 +95,8 @@ npm run dev
 
 The development command starts the Vite server and Electron. You should see the main MyAgent window and the small floating companion.
 
+**Electron recovery:** if the Electron package is installed but its native executable is missing, `npm run dev` now starts the authenticated browser-only development mode instead. It starts the Python agent and Vite with one temporary local token. The terminal prints the local URL; keep it open while using MyAgent. Browser mode does not include the floating desktop companion or Electron's native folder picker. Stop it with `Ctrl+C`.
+
 For later launches, once setup is complete, you can normally run:
 
 ```powershell
