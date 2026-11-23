@@ -33,9 +33,11 @@ function portIsOpen(host, port) {
   });
 }
 
-async function waitForAgent(child, timeoutMs = 30_000) {
+async function waitForAgent(child, timeoutMs = 30_000, getSpawnError = () => null) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
+    const spawnError = getSpawnError();
+    if (spawnError) throw spawnError;
     if (child.exitCode !== null) {
       throw new Error(`Python agent exited early with code ${child.exitCode}.`);
     }
@@ -110,8 +112,7 @@ async function runBrowserMode(reason) {
   process.once("SIGTERM", () => void stop(0));
 
   try {
-    const health = await waitForAgent(agent);
-    if (agentSpawnError) throw agentSpawnError;
+    const health = await waitForAgent(agent, 30_000, () => agentSpawnError);
     console.log(`[MyAgent] Python agent ready. Ollama model available: ${Boolean(health.features?.llm)}.`);
     server = await createServer();
     await server.listen();
