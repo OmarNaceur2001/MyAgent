@@ -9,6 +9,14 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+
+# Load the optional repository-root .env file; real process variables take precedence.
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+load_dotenv(PROJECT_ROOT / ".env", override=False)
 
 
 def _get_env(key: str, legacy_key: str, default: str) -> str:
@@ -20,6 +28,13 @@ class Settings:
     ollama_url: str = _get_env("MYAGENT_OLLAMA_URL", "MIMO_OLLAMA_URL", "http://127.0.0.1:11434")
     user_name: str = _get_env("MYAGENT_USER_NAME", "MIMO_USER_NAME", "Omar")
     model: str = _get_env("MYAGENT_MODEL", "MIMO_MODEL", "qwen2.5:3b")
+    llm_provider: str = _get_env("MYAGENT_LLM_PROVIDER", "MIMO_LLM_PROVIDER", "ollama").strip().lower()
+    openrouter_api_key: str = os.environ.get("OPENROUTER_API_KEY", "").strip()
+    openrouter_base_url: str = os.environ.get("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1").strip()
+    openrouter_model: str = os.environ.get("OPENROUTER_MODEL", "nvidia/nemotron-3.5-lightning:free").strip()
+    groq_api_key: str = os.environ.get("GROQ_API_KEY", "").strip()
+    groq_base_url: str = os.environ.get("GROQ_BASE_URL", "https://api.groq.com/openai/v1").strip()
+    groq_model: str = os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b").strip()
     # Unload the model from the GPU after this much idle time (keeps the PC cool).
     keep_alive: str = _get_env("MYAGENT_KEEP_ALIVE", "MIMO_KEEP_ALIVE", "2m")
     max_steps: int = int(_get_env("MYAGENT_MAX_STEPS", "MIMO_MAX_STEPS", "8"))
