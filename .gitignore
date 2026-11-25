@@ -5,3 +5,8 @@ __pycache__/
 agent/data/
 .pytest_cache/
 *.log
+
+# Local secrets
+.env
+.env.*
+!.env.example
