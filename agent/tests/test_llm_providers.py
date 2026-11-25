@@ -88,3 +88,40 @@ def test_openai_compatible_missing_key_is_unavailable():
         api_key="",
     )
     assert asyncio.run(client.available()) is False
+
+
+
+def test_internal_tool_transcript_is_normalized_with_matching_call_ids():
+    captured = {}
+
+    def handler(request):
+        body = json.loads(request.content)
+        captured["messages"] = body["messages"]
+        return httpx.Response(200, json={
+            "choices": [{"message": {"content": "Task summary recorded.", "tool_calls": []}}],
+            "usage": {"prompt_tokens": 20, "completion_tokens": 5},
+        })
+
+    client = OpenAICompatibleLLM(
+        provider_name="TestProvider",
+        base_url="https://provider.example/v1",
+        model="test/model",
+        api_key="unit-test-secret",
+        transport=httpx.MockTransport(handler),
+    )
+    internal_messages = [
+        {"role": "user", "content": "record this task"},
+        {"role": "assistant", "content": "", "tool_calls": [
+            {"function": {"name": "record_task_summary", "arguments": {"summary": "validate task"}}}
+        ]},
+        {"role": "tool", "content": "Recorded.", "tool_name": "record_task_summary"},
+        {"role": "user", "content": "What happened?"},
+    ]
+    reply = asyncio.run(client.chat(internal_messages, []))
+    assistant_call = captured["messages"][1]["tool_calls"][0]
+    tool_result = captured["messages"][2]
+    assert assistant_call["type"] == "function"
+    assert assistant_call["function"]["arguments"] == '{"summary":"validate task"}'
+    assert tool_result["tool_call_id"] == assistant_call["id"]
+    assert tool_result["role"] == "tool"
+    assert reply.content == "Task summary recorded."
