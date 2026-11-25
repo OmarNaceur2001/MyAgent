@@ -1,35 +1,38 @@
 from types import SimpleNamespace
 
-from scripts.benchmark_llms import Scenario, evaluate, percentile, summarize
+from scripts.benchmark_llms import TASKS, pctl, summarize, valid_output
 
 
-def test_python_scenario_checks_syntax_and_contract():
-    scenario = Scenario("python_code", [], "python")
-    reply = SimpleNamespace(content="def normalize_task_title(value):\n    if not isinstance(value, str):\n        raise ValueError()\n    return value.strip()", tool_calls=[])
-    assert evaluate(scenario, reply)[0] is True
+def test_python_task_checks_syntax_and_contract():
+    reply = SimpleNamespace(
+        content="def normalize_task_title(value):\n    if not isinstance(value, str):\n        raise ValueError()\n    return value.strip()",
+        tool_calls=[],
+    )
+    assert valid_output("python", reply) is True
 
 
-def test_json_scenario_rejects_invalid_schema():
-    scenario = Scenario("structured_json", [], "json")
-    reply = SimpleNamespace(content='{"summary":"Task","priority":"urgent","acceptance_criteria":[]}', tool_calls=[])
-    assert evaluate(scenario, reply)[0] is False
+def test_json_task_rejects_invalid_priority():
+    reply = SimpleNamespace(
+        content='{"summary":"Task","priority":"urgent","acceptance_criteria":[]}',
+        tool_calls=[],
+    )
+    assert valid_output("json", reply) is False
 
 
-def test_tool_scenario_requires_exact_tool_and_arguments():
-    scenario = Scenario("tool_calling", [], "tool")
+def test_tool_task_requires_exact_name_and_valid_arguments():
     good = SimpleNamespace(content="", tool_calls=[
         SimpleNamespace(name="record_task_summary", arguments={"summary":"validate title and due date"})
     ])
     bad = SimpleNamespace(content="", tool_calls=[
         SimpleNamespace(name="delete_file", arguments={"path":"notes.txt"})
     ])
-    assert evaluate(scenario, good)[0] is True
-    assert evaluate(scenario, bad)[0] is False
+    assert valid_output("tool", good) is True
+    assert valid_output("tool", bad) is False
 
 
 def test_percentile_uses_interpolated_values():
-    assert percentile([10.0, 20.0, 30.0, 40.0], 50) == 25.0
-    assert percentile([], 95) is None
+    assert pctl([10.0, 20.0, 30.0, 40.0], 50) == 25.0
+    assert pctl([], 95) is None
 
 
 def test_summary_counts_failed_requests_and_tool_success():
@@ -45,3 +48,10 @@ def test_summary_counts_failed_requests_and_tool_success():
     assert result["api_errors"] == 1
     assert result["tool_success_rate"] == 0.0
     assert result["test_pass_rate"] == 0.5
+
+
+def test_benchmark_contains_all_seven_synthetic_scenarios():
+    assert len(TASKS) == 7
+    assert {name for name, _ in TASKS} == {
+        "jira", "plan", "python", "web", "debug", "json", "tool"
+    }
