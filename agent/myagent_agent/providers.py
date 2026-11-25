@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import time
+import uuid
 from typing import Any
 
 import httpx
@@ -40,6 +41,46 @@ class OpenAICompatibleLLM:
             payload["stream_options"] = {"include_usage": True}
         return payload
 
+    def _compatible_messages(self, messages: list[dict]) -> list[dict]:
+        """Translate MyAgent's internal tool transcript to OpenAI tool-call IDs."""
+        pending: dict[str, list[str]] = {}
+        normalized: list[dict] = []
+        for message in messages:
+            role = message.get("role")
+            if role == "assistant" and message.get("tool_calls"):
+                converted = []
+                for item in message.get("tool_calls") or []:
+                    function = item.get("function") or {}
+                    name = str(function.get("name") or "")
+                    call_id = str(item.get("id") or ("call_" + uuid.uuid4().hex))
+                    arguments = function.get("arguments") or {}
+                    if not isinstance(arguments, str):
+                        arguments = json.dumps(arguments, separators=(",", ":"))
+                    converted.append({
+                        "id": call_id,
+                        "type": "function",
+                        "function": {"name": name, "arguments": arguments},
+                    })
+                    pending.setdefault(name, []).append(call_id)
+                normalized.append({
+                    "role": "assistant",
+                    "content": message.get("content") or None,
+                    "tool_calls": converted,
+                })
+            elif role == "tool":
+                name = str(message.get("tool_name") or message.get("name") or "")
+                call_ids = pending.get(name) or []
+                if not call_ids:
+                    raise LLMUnavailable("The conversation contains an unmatched tool result.")
+                normalized.append({
+                    "role": "tool",
+                    "tool_call_id": call_ids.pop(0),
+                    "content": str(message.get("content") or ""),
+                })
+            else:
+                normalized.append(dict(message))
+        return normalized
+
     async def available(self) -> bool:
         if not self.api_key:
             return False
@@ -59,7 +100,7 @@ class OpenAICompatibleLLM:
             async with self._client(180) as client:
                 response = await client.post(
                     f"{self.base_url}/chat/completions",
-                    json=self._payload(messages, tools, False),
+                    json=self._payload(self._compatible_messages(messages), tools, False),
                 )
         except httpx.HTTPError as exc:
             raise LLMUnavailable(f"Could not reach {self.provider_name}. Check its status and your connection.") from exc
@@ -87,7 +128,7 @@ class OpenAICompatibleLLM:
             async with self._client(180) as client:
                 async with client.stream(
                     "POST", f"{self.base_url}/chat/completions",
-                    json=self._payload(messages, tools, True),
+                    json=self._payload(self._compatible_messages(messages), tools, True),
                 ) as response:
                     if response.status_code >= 400:
                         raise LLMUnavailable(f"{self.provider_name} streaming returned HTTP {response.status_code}.")
