@@ -19,7 +19,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from . import __version__, events
 from .brain import Brain
 from .config import settings
-from .llm import OllamaLLM
+from .providers import create_llm
 from .memory import ShortMemory
 from .performance import PerformanceMiddleware, PerformanceMonitor
 from .prefs import Prefs
@@ -65,7 +65,7 @@ if not db_file.exists() and (DATA_DIR / "mimo.db").exists():
         pass
 store = Store(db_file if (db_file.exists() or not (DATA_DIR / "mimo.db").exists()) else (DATA_DIR / "mimo.db"))
 timers = TimerService(hub.broadcast, store)
-llm = OllamaLLM(settings.ollama_url, settings.model, settings.keep_alive)
+llm = create_llm(settings)
 broker = ConfirmationBroker()
 resource_permissions = ResourcePermissions(DATA_DIR / "resource_permissions.json")
 toolbox = Toolbox(timers, emit=lambda e: emit(e), resources=resource_permissions)
@@ -107,8 +107,8 @@ async def features() -> dict[str, bool]:
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     log.info("MyAgent agent %s ready on ws://127.0.0.1:8765/ws", __version__)
-    log.info("Model: %s (%s) · tools: %s", settings.model,
-             "ready" if await llm.available() else "NOT available, start Ollama and pull it",
+    log.info("LLM: %s (%s) · tools: %s", getattr(llm, "model", settings.model),
+             "ready" if await llm.available() else "NOT available or not configured",
              ", ".join(toolbox.tools))
     voice.start_background()
     if voice.wake and voice.wake_enabled:
