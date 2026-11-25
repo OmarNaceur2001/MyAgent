@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import re
+import time
 from dataclasses import dataclass, field
 from typing import Protocol
 
@@ -24,6 +25,8 @@ class ToolCall:
 class Reply:
     content: str = ""
     tool_calls: list[ToolCall] = field(default_factory=list)
+    prompt_tokens: int | None = None
+    completion_tokens: int | None = None
 
 
 class LLM(Protocol):
@@ -67,8 +70,60 @@ class OllamaLLM:
         if r.status_code == 404:
             raise LLMUnavailable(f"Model '{self.model}' isn't downloaded. Run: ollama pull {self.model}")
         r.raise_for_status()
-        msg = r.json().get("message", {})
-        return parse_message(msg)
+        data = r.json()
+        reply = parse_message(data.get("message", {}))
+        reply.prompt_tokens = data.get("prompt_eval_count")
+        reply.completion_tokens = data.get("eval_count")
+        return reply
+
+    async def chat_with_metrics(self, messages: list[dict], tools: list[dict]) -> tuple[Reply, float | None]:
+        """Stream Ollama output and measure time to first generated content/tool call."""
+        body = {
+            "model": self.model,
+            "messages": messages,
+            "tools": tools,
+            "stream": True,
+            "keep_alive": self.keep_alive,
+            "options": {"temperature": 0.6, "num_ctx": 8192},
+        }
+        started = time.perf_counter()
+        first_token_at = None
+        content_parts: list[str] = []
+        tool_calls: list[dict] = []
+        prompt_tokens = completion_tokens = None
+        try:
+            async with httpx.AsyncClient(timeout=180) as client:
+                async with client.stream("POST", f"{self.url}/api/chat", json=body) as response:
+                    if response.status_code == 404:
+                        raise LLMUnavailable(f"Model '{self.model}' isn't downloaded. Run: ollama pull {self.model}")
+                    response.raise_for_status()
+                    async for line in response.aiter_lines():
+                        if not line:
+                            continue
+                        try:
+                            chunk = json.loads(line)
+                        except json.JSONDecodeError:
+                            continue
+                        message = chunk.get("message") or {}
+                        piece = message.get("content") or ""
+                        if piece:
+                            if first_token_at is None:
+                                first_token_at = time.perf_counter()
+                            content_parts.append(piece)
+                        if message.get("tool_calls"):
+                            if first_token_at is None:
+                                first_token_at = time.perf_counter()
+                            tool_calls = message["tool_calls"]
+                        prompt_tokens = chunk.get("prompt_eval_count", prompt_tokens)
+                        completion_tokens = chunk.get("eval_count", completion_tokens)
+        except httpx.HTTPError as exc:
+            raise LLMUnavailable(f"Can't reach Ollama at {self.url}. Is it running?") from exc
+
+        reply = parse_message({"content": "".join(content_parts), "tool_calls": tool_calls})
+        reply.prompt_tokens = prompt_tokens
+        reply.completion_tokens = completion_tokens
+        ttft_ms = (first_token_at - started) * 1000 if first_token_at is not None else None
+        return reply, ttft_ms
 
 
 def parse_message(msg: dict) -> Reply:
