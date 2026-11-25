@@ -65,9 +65,9 @@ $env:MYAGENT_MODEL = "qwen2.5:7b"
 
 The default model keep-alive is two minutes, which lets Ollama unload it after a period of inactivity.
 
-### 3. Set up voice (optional)
+### 3. Set up voice (optional; required for microphone and spoken replies)
 
-Voice input and output are optional. Activate the agent environment and install the voice packages:
+The desktop app can run without voice support, but `npm ci` does not install the Python audio packages. To use the microphone or hear spoken replies, run this step before starting MyAgent. The voice packages must be installed in `agent/.venv`:
 
 ```powershell
 cd agent
@@ -83,7 +83,17 @@ MyAgent uses:
 - **Speech recognition:** faster-whisper with the `base.en` model by default. Whisper downloads its model on first use.
 - **Speech output:** Piper with the male US English voice `en_US-ryan-high`.
 
-The microphone must be enabled in Windows under **Settings → Privacy & security → Microphone**, including **Let desktop apps access your microphone**.
+Allow microphone access in Windows under **Settings → Privacy & security → Microphone**. Turn on both **Microphone access** and **Let desktop apps access your microphone**. In **Settings → System → Sound → Input**, choose and test the microphone you want MyAgent to use.
+
+To check that Python can see an input device, run this from the repository root:
+
+```powershell
+cd agent
+.\.venv\Scripts\python.exe -c "import sounddevice as sd; print(sd.query_devices()); print('Default devices:', sd.default.device)"
+cd ..
+```
+
+If voice packages are installed while MyAgent is already open, quit and restart it so the agent detects them. If the microphone button is still unavailable, confirm the selected Windows input device works and that microphone access is allowed for desktop apps. Spoken replies also require the Piper voice download above and must be enabled under **Talk → Voice and sound**.
 
 ### 4. Install and run the desktop app
 
@@ -226,6 +236,12 @@ Local-file access is disabled until you choose a folder under **Talk → Local f
 MyAgent does not provide shell execution, arbitrary app launching, operating-system settings control, or credential-store access. Desktop launching is restricted to the explicit allowlist: Excel, Word, PowerPoint, Notepad, Calculator, and File Explorer. Website destinations are restricted by the agent's URL safety checks; local addresses and `file://` URLs are not permitted.
 
 The React interface displays state and sends commands to the local agent. Electron provides a native folder picker and a private session token only to its validated app windows; it does not expose filesystem APIs. The Python agent validates and performs every supported file operation. The WebSocket rejects clients without the matching session token before sending application data.
+
+## Performance monitoring
+
+The Python agent writes `[PERFORMANCE]` timing records to its normal application log. Each user workflow has an execution ID and a total duration in milliseconds and seconds. Timed stages include intent routing, quick commands, each Ollama request, confirmation waits, individual agent tools, and action-log persistence. Failed and cancelled stages and workflows are recorded without suppressing their errors.
+
+HTTP requests are logged with method, route, status, request ID, and full response duration. Normal HTTP responses include an `X-Process-Time` header in milliseconds measured until response headers are sent; request logs include the full duration through the last response body chunk, including streaming responses. Request logs omit query strings and unmatched raw paths. Prompts, credentials, and user-provided request text are not included in performance logs.
 
 ## Project structure and character design
 

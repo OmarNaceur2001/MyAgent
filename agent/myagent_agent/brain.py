@@ -13,12 +13,12 @@ from __future__ import annotations
 
 import asyncio
 import time
-import uuid
 from typing import Awaitable, Callable
 
 from . import events
 from .llm import LLM, LLMUnavailable
 from .memory import ShortMemory
+from .performance import PerformanceMonitor
 from .safety import ActionLog, ConfirmationBroker, SafetyError
 from .tools import Toolbox
 
@@ -68,8 +68,10 @@ class Brain:
     def busy(self) -> bool:
         return bool(self._task and not self._task.done())
 
-    def start(self, request: str) -> asyncio.Task:
-        self._task = asyncio.create_task(self._run_safely(request))
+    def start(self, request: str, performance: PerformanceMonitor | None = None) -> asyncio.Task:
+        monitor = performance or PerformanceMonitor()
+        monitor.start()
+        self._task = asyncio.create_task(self._run_safely(request, monitor))
         return self._task
 
     async def cancel(self) -> bool:
@@ -80,23 +82,50 @@ class Brain:
         return True
 
     # ------------------------------------------------------------------
-    async def _run_safely(self, request: str) -> None:
-        task_id = uuid.uuid4().hex[:8]
+    async def _run_safely(self, request: str, performance: PerformanceMonitor) -> None:
+        task_id = performance.execution_id
+        outcome = "completed"
         try:
-            await self.run(request, task_id)
+            await self.run(request, task_id, performance=performance)
         except asyncio.CancelledError:
+            outcome = "cancelled"
             await self.emit(events.event("agent.done", task_id=task_id, ok=False, summary="Stopped."))
             await self.emit(events.message("Okay, I stopped.", tone="neutral"))
         except LLMUnavailable as exc:
+            outcome = "failed"
             await self.emit(events.message(f"My brain isn't reachable: {exc}", tone="sad"))
             await self.emit(events.event("agent.done", task_id=task_id, ok=False, summary=str(exc)))
         except Exception as exc:  # never leave the UI stuck in "thinking"
+            outcome = "failed"
             await self.emit(events.message(f"Something went wrong inside me: {exc}", tone="sad"))
             await self.emit(events.event("agent.done", task_id=task_id, ok=False, summary=str(exc)))
         finally:
-            await self.emit(events.status("idle"))
+            try:
+                await self.emit(events.status("idle"))
+            finally:
+                performance.finish(outcome)
 
-    async def run(self, request: str, task_id: str) -> str:
+    async def run(
+        self,
+        request: str,
+        task_id: str,
+        *,
+        performance: PerformanceMonitor | None = None,
+    ) -> str:
+        monitor = performance or PerformanceMonitor(task_id)
+        owns_monitor = performance is None
+        monitor.start()
+        outcome = "completed"
+        try:
+            return await self._run(request, task_id, monitor)
+        except BaseException as exc:
+            outcome = "cancelled" if isinstance(exc, asyncio.CancelledError) else "failed"
+            raise
+        finally:
+            if owns_monitor:
+                monitor.finish(outcome)
+
+    async def _run(self, request: str, task_id: str, performance: PerformanceMonitor) -> str:
         system = SYSTEM_PROMPT.format(user=self.user_name, now=time.strftime("%A %Y-%m-%d %H:%M"))
         resources = getattr(self.tools, "resources", None)
         grants = resources.list() if resources is not None else []
@@ -114,7 +143,8 @@ class Brain:
 
         for step in range(1, self.max_steps + 1):
             await self.emit(events.status("thinking"))
-            reply = await self.llm.chat(messages, self.tools.schemas())
+            with performance.measure(f"LLM request step={step}"):
+                reply = await self.llm.chat(messages, self.tools.schemas())
 
             if not reply.tool_calls:
                 answer = reply.content or "Done!"
@@ -130,7 +160,9 @@ class Brain:
             })
             for i, call in enumerate(reply.tool_calls):
                 step_id = f"{step}.{i}"
-                result, ok = await self._execute(task_id, step_id, call.name, call.arguments)
+                result, ok = await self._execute(
+                    task_id, step_id, call.name, call.arguments, performance
+                )
                 any_failed = any_failed or not ok
                 messages.append({"role": "tool", "content": result, "tool_name": call.name})
 
@@ -139,7 +171,14 @@ class Brain:
         await self.emit(events.event("agent.done", task_id=task_id, ok=False, summary=msg))
         return msg
 
-    async def _execute(self, task_id: str, step_id: str, name: str, args: dict) -> tuple[str, bool]:
+    async def _execute(
+        self,
+        task_id: str,
+        step_id: str,
+        name: str,
+        args: dict,
+        performance: PerformanceMonitor,
+    ) -> tuple[str, bool]:
         tool = self.tools.tools.get(name)
         title = tool.title(args) if tool and tool.title else name
         step = lambda status, note=None: events.event(  # noqa: E731
@@ -152,25 +191,36 @@ class Brain:
         await self.emit(step("running"))
         await self.emit(events.status("working", title))
         try:
-            if tool.risk == "confirm" and not await self._ask(title, tool.confirm(args) if tool.confirm else title):
-                await self.emit(step("skipped", "you said no"))
-                self.log.write(name, args, False, "declined by user")
-                return "The user declined this action. Do not retry it; tell them it was not done.", True
-            result = await tool.handler(args)
+            if tool.risk == "confirm":
+                with performance.measure("Confirmation wait"):
+                    approved = await self._ask(
+                        title, tool.confirm(args) if tool.confirm else title
+                    )
+                if not approved:
+                    await self.emit(step("skipped", "you said no"))
+                    with performance.measure("Action log persistence"):
+                        self.log.write(name, args, False, "declined by user")
+                    return "The user declined this action. Do not retry it; tell them it was not done.", True
+            with performance.measure(f"Tool: {name}"):
+                result = await tool.handler(args)
             await self.emit(step("done", _short(result)))
-            self.log.write(name, args, True, result)
+            with performance.measure("Action log persistence"):
+                self.log.write(name, args, True, result)
             return result, True
         except SafetyError as exc:
             await self.emit(step("failed", str(exc)))
-            self.log.write(name, args, False, str(exc))
+            with performance.measure("Action log persistence"):
+                self.log.write(name, args, False, str(exc))
             return f"Error: {exc}", False
         except (KeyError, TypeError, ValueError) as exc:
             await self.emit(step("failed", "bad arguments"))
-            self.log.write(name, args, False, repr(exc))
+            with performance.measure("Action log persistence"):
+                self.log.write(name, args, False, repr(exc))
             return f"Error: wrong arguments for {name} ({exc}). Check the parameters and try again.", False
         except OSError as exc:
             await self.emit(step("failed", exc.strerror or str(exc)))
-            self.log.write(name, args, False, repr(exc))
+            with performance.measure("Action log persistence"):
+                self.log.write(name, args, False, repr(exc))
             return f"Error: {exc}", False
 
     async def _ask(self, action: str, details: str) -> bool:

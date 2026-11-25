@@ -6,6 +6,7 @@ Run with:  python run.py
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import os
@@ -20,6 +21,7 @@ from .brain import Brain
 from .config import settings
 from .llm import OllamaLLM
 from .memory import ShortMemory
+from .performance import PerformanceMiddleware, PerformanceMonitor
 from .prefs import Prefs
 from .resources import ResourcePermissions
 from .router import Intent, route
@@ -117,6 +119,7 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="MyAgent agent", version=__version__, lifespan=lifespan)
+app.add_middleware(PerformanceMiddleware)
 
 
 @app.get("/health")
@@ -160,6 +163,24 @@ async def ws_endpoint(ws: WebSocket) -> None:
 # ---------------------------------------------------------------- commands
 
 async def handle(name: str, args: dict) -> None:
+    if name == "say":
+        await _handle(name, args)
+        return
+
+    performance = PerformanceMonitor()
+    performance.start()
+    outcome = "completed"
+    try:
+        with performance.measure(f"Command: {name}"):
+            await _handle(name, args)
+    except BaseException as exc:
+        outcome = "cancelled" if isinstance(exc, asyncio.CancelledError) else "failed"
+        raise
+    finally:
+        performance.finish(outcome)
+
+
+async def _handle(name: str, args: dict) -> None:
     if name == "say":
         voice.end_conversation()  # typing ends hands-free conversation mode
         await handle_say(str(args.get("text", "")))
@@ -236,21 +257,36 @@ async def handle_say(text: str, spoken: bool = False) -> None:
     text = text.strip()
     if not text:
         return
-    if text.lower().strip(" .!") in STOP_WORDS and brain.busy:
-        await brain.cancel()
-        return
-    await hub.broadcast(events.event("agent.transcript", text=text, final=True))
-    intent = route(text)
-    if intent:
-        reply = await run_intent(intent, speak=True)
-        if intent.name != "memory.clear":
-            memory.add(text, " ".join(x for x in (_did(intent), reply) if x))
-        return
-    # Not a fast-path command: hand it to the LLM brain.
-    if brain.busy:
-        await emit(events.message("I'm still on the last thing! Say “stop” to cancel it.", tone="confused"))
-        return
-    brain.start(text)
+    performance = PerformanceMonitor()
+    performance.start()
+    delegated = False
+    outcome = "completed"
+    try:
+        if text.lower().strip(" .!") in STOP_WORDS and brain.busy:
+            with performance.measure("Workflow cancellation"):
+                await brain.cancel()
+            return
+        await hub.broadcast(events.event("agent.transcript", text=text, final=True))
+        with performance.measure("Intent routing"):
+            intent = route(text)
+        if intent:
+            with performance.measure(f"Quick command: {intent.name}"):
+                reply = await run_intent(intent, speak=True)
+            if intent.name != "memory.clear":
+                memory.add(text, " ".join(x for x in (_did(intent), reply) if x))
+            return
+        # Not a fast-path command: hand it to the LLM brain.
+        if brain.busy:
+            await emit(events.message("I'm still on the last thing! Say “stop” to cancel it.", tone="confused"))
+            return
+        brain.start(text, performance)
+        delegated = True
+    except BaseException as exc:
+        outcome = "cancelled" if isinstance(exc, asyncio.CancelledError) else "failed"
+        raise
+    finally:
+        if not delegated:
+            performance.finish(outcome)
 
 
 GAME_NAMES = {"tictactoe": "tic-tac-toe", "rps": "rock-paper-scissors", "memory": "memory match"}

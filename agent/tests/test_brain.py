@@ -1,6 +1,7 @@
 """Brain tests with a scripted fake LLM (no Ollama, no browser needed)."""
 
 import asyncio
+import logging
 
 import pytest
 
@@ -55,6 +56,77 @@ def test_only_web_and_fun_tools_exist(tmp_path):
     assert brain.tools.tools["delete_file"].risk == "confirm"
     for forbidden in ("find_files", "move_path", "delete_path", "create_folder", "open_path"):
         assert forbidden not in names
+
+
+def test_successful_brain_run_logs_llm_and_total_duration(tmp_path, caplog):
+    async def go():
+        brain, _, _ = make(tmp_path, [Reply(content="Here you go.")])
+        assert await brain.run("private request text", "timed-success") == "Here you go."
+
+    with caplog.at_level(logging.INFO, logger="myagent.performance"):
+        asyncio.run(go())
+
+    messages = [record.getMessage() for record in caplog.records]
+    assert any("LLM request step=1:" in message and "outcome=completed" in message for message in messages)
+    assert any("Total execution time:" in message and "outcome=completed" in message for message in messages)
+    assert all("private request text" not in message for message in messages)
+
+
+def test_failed_brain_run_logs_duration_and_preserves_exception(tmp_path, caplog):
+    class FailedLLM:
+        async def chat(self, messages, tools):
+            raise RuntimeError("model failed")
+
+    async def go():
+        brain, _, _ = make(tmp_path, [])
+        brain.llm = FailedLLM()
+        with pytest.raises(RuntimeError, match="model failed"):
+            await brain.run("private request text", "timed-failure")
+
+    with caplog.at_level(logging.INFO, logger="myagent.performance"):
+        asyncio.run(go())
+
+    messages = [record.getMessage() for record in caplog.records]
+    assert any("LLM request step=1:" in message and "outcome=failed" in message for message in messages)
+    assert any("Total execution time:" in message and "outcome=failed" in message for message in messages)
+    assert all("private request text" not in message for message in messages)
+
+
+def test_started_brain_workflow_records_total_on_success(tmp_path, caplog):
+    async def go():
+        brain, sent, _ = make(tmp_path, [Reply(content="Finished.")])
+        await brain.start("hello")
+        assert any(e["type"] == "agent.status" and e["payload"]["state"] == "idle" for e in sent)
+
+    with caplog.at_level(logging.INFO, logger="myagent.performance"):
+        asyncio.run(go())
+
+    assert any(
+        "Total execution time:" in record.getMessage()
+        and "outcome=completed" in record.getMessage()
+        for record in caplog.records
+    )
+
+
+def test_started_brain_workflow_records_total_on_failure(tmp_path, caplog):
+    class FailedLLM:
+        async def chat(self, messages, tools):
+            raise RuntimeError("model failed")
+
+    async def go():
+        brain, sent, _ = make(tmp_path, [])
+        brain.llm = FailedLLM()
+        await brain.start("hello")
+        assert any(e["type"] == "agent.message" and "Something went wrong" in e["payload"]["text"] for e in sent)
+
+    with caplog.at_level(logging.INFO, logger="myagent.performance"):
+        asyncio.run(go())
+
+    assert any(
+        "Total execution time:" in record.getMessage()
+        and "outcome=failed" in record.getMessage()
+        for record in caplog.records
+    )
 
 
 def test_play_song_opens_the_video(tmp_path):
