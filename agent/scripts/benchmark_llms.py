@@ -17,8 +17,9 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT))
+AGENT_DIR = Path(__file__).resolve().parents[1]
+ROOT = AGENT_DIR.parent
+sys.path.insert(0, str(AGENT_DIR))
 from myagent_agent.config import settings
 from myagent_agent.providers import build_benchmark_registry
 
